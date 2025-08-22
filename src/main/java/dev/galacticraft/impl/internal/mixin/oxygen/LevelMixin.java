@@ -27,6 +27,8 @@ import dev.galacticraft.api.accessor.LevelOxygenAccessor;
 import dev.galacticraft.api.universe.celestialbody.CelestialBody;
 import dev.galacticraft.impl.internal.accessor.ChunkOxygenAccessor;
 import dev.galacticraft.impl.internal.accessor.InternalLevelOxygenAccessor;
+import dev.galacticraft.mod.events.GCEventHandlers;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
@@ -36,6 +38,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.storage.WritableLevelData;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -49,7 +52,12 @@ import java.util.function.Supplier;
 public abstract class LevelMixin implements LevelOxygenAccessor, InternalLevelOxygenAccessor, LevelAccessor {
     private @Unique boolean breathable = true;
 
-    @Shadow public abstract @NotNull LevelChunk getChunk(int i, int j);
+    @Shadow
+    public abstract @NotNull LevelChunk getChunk(int i, int j);
+
+    @Shadow
+    @Final
+    private ResourceKey<Level> dimension;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void initializeOxygenValues(WritableLevelData writableLevelData, ResourceKey<Level> resourceKey, RegistryAccess registryAccess, Holder holder, Supplier supplier, boolean bl, boolean bl2, long l, int i, CallbackInfo ci) {
@@ -86,6 +94,10 @@ public abstract class LevelMixin implements LevelOxygenAccessor, InternalLevelOx
         assert x >= 0 && x < 16 && z >= 0 && z < 16;
         if (y < this.getMinBuildHeight() || y >= this.getMaxBuildHeight()) return;
         ((ChunkOxygenAccessor) chunk).galacticraft$setInverted(x, y, z, this.breathable ^ value);
+        if (!value) {
+            BlockPos blockPos = chunk.getPos().getBlockAt(x, y, z);
+            GCEventHandlers.extinguishBlock((Level) (Object) this, blockPos, this.getBlockState(blockPos));
+        }
     }
 
     @Override

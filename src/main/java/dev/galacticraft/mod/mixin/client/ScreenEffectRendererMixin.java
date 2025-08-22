@@ -22,31 +22,16 @@
 
 package dev.galacticraft.mod.mixin.client;
 
-import dev.galacticraft.mod.Constant;
-import dev.galacticraft.mod.tag.GCTags;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
+import dev.galacticraft.mod.Constant;
+import dev.galacticraft.mod.tag.GCFluidTags;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.ScreenEffectRenderer;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.FluidTags;
-import net.minecraft.tags.TagKey;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.material.Fluid;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -65,11 +50,11 @@ public class ScreenEffectRendererMixin {
 
     @Inject(method = "renderScreenEffect", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isEyeInFluid(Lnet/minecraft/tags/TagKey;)Z"), cancellable = true)
     private static void gc$fluidOverlays(Minecraft minecraft, PoseStack poseStack, CallbackInfo ci) {
-        if (minecraft.player.isEyeInFluid(GCTags.OIL)) {
+        if (minecraft.player.isEyeInFluid(GCFluidTags.OIL)) {
             gc$renderFluidOverlay(minecraft, poseStack, OIL_LOCATION);
-        } else if (minecraft.player.isEyeInFluid(GCTags.FUEL)) {
+        } else if (minecraft.player.isEyeInFluid(GCFluidTags.FUEL)) {
             gc$renderFluidOverlay(minecraft, poseStack, FUEL_LOCATION);
-        } else if (minecraft.player.isEyeInFluid(GCTags.SULFURIC_ACID)) {
+        } else if (minecraft.player.isEyeInFluid(GCFluidTags.SULFURIC_ACID)) {
             gc$renderFluidOverlay(minecraft, poseStack, ACID_LOCATION);
         }
     }
@@ -82,12 +67,6 @@ public class ScreenEffectRendererMixin {
         float f = LightTexture.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
         RenderSystem.enableBlend();
         RenderSystem.setShaderColor(f, f, f, 0.1f);
-        float f2 = 4.0f;
-        float f3 = -1.0f;
-        float f4 = 1.0f;
-        float f5 = -1.0f;
-        float f6 = 1.0f;
-        float f7 = -0.5f;
         float f8 = -minecraft.player.getYRot() / 64.0f;
         float f9 = minecraft.player.getXRot() / 64.0f;
         Matrix4f matrix4f = poseStack.last().pose();

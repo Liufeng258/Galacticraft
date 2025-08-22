@@ -55,9 +55,7 @@ public class GCMenuTypes {
 
     public static final MenuType<MachineMenu<OxygenCompressorBlockEntity>> OXYGEN_COMPRESSOR = SynchronizedMenuType.createSimple(MachineMenu::new);
     public static final MenuType<MachineMenu<OxygenDecompressorBlockEntity>> OXYGEN_DECOMPRESSOR = SynchronizedMenuType.createSimple(MachineMenu::new);
-
-    public static final MenuType<MachineMenu<OxygenSealerBlockEntity>> OXYGEN_SEALER = SynchronizedMenuType.createSimple(MachineMenu::new);
-
+    public static final MenuType<OxygenSealerMenu> OXYGEN_SEALER = SynchronizedMenuType.create(OxygenSealerMenu::new);
     public static final MenuType<OxygenBubbleDistributorMenu> OXYGEN_BUBBLE_DISTRIBUTOR = SynchronizedMenuType.create(OxygenBubbleDistributorMenu::new);
 
     public static final MenuType<MachineMenu<OxygenStorageModuleBlockEntity>> OXYGEN_STORAGE_MODULE = SynchronizedMenuType.createSimple(MachineMenu::new);
@@ -65,7 +63,10 @@ public class GCMenuTypes {
 
     public static final MenuType<FuelLoaderMenu> FUEL_LOADER = SynchronizedMenuType.create(FuelLoaderMenu::new);
 
+    public static final MenuType<FoodCannerMenu> FOOD_CANNER = SynchronizedMenuType.create(FoodCannerMenu::new);
+
     public static final MenuType<GCPlayerInventoryMenu> PLAYER_INV_GC = new MenuType<>(GCPlayerInventoryMenu::new, FeatureFlags.VANILLA_SET);
+    public static final MenuType<GCPetInventoryMenu> PET_INV_GC = new ExtendedScreenHandlerType<>(GCPetInventoryMenu::new, ByteBufCodecs.INT);
 
     public static final MenuType<AirlockControllerMenu> AIRLOCK_CONTROLLER_MENU = new MenuType<>(AirlockControllerMenu::new, FeatureFlags.VANILLA_SET);
     public static final MenuType<RocketWorkbenchMenu> ROCKET_WORKBENCH = new ExtendedScreenHandlerType<>(RocketWorkbenchMenu::new, RocketWorkbenchMenu.OpeningData.CODEC);
@@ -74,6 +75,7 @@ public class GCMenuTypes {
 
     public static void register() {
         Registry.register(BuiltInRegistries.MENU, Constant.id(Constant.Menu.PLAYER_INVENTORY_MENU), PLAYER_INV_GC);
+        Registry.register(BuiltInRegistries.MENU, Constant.id(Constant.Menu.PET_INVENTORY_MENU), PET_INV_GC);
 
         Registry.register(BuiltInRegistries.MENU, Constant.id(Constant.Menu.COAL_GENERATOR_MENU), COAL_GENERATOR);
         Registry.register(BuiltInRegistries.MENU, Constant.id(Constant.Menu.BASIC_SOLAR_PANEL_MENU), BASIC_SOLAR_PANEL);
@@ -96,6 +98,8 @@ public class GCMenuTypes {
         Registry.register(BuiltInRegistries.MENU, Constant.id(Constant.Menu.OXYGEN_STORAGE_MODULE_MENU), OXYGEN_STORAGE_MODULE);
 
         Registry.register(BuiltInRegistries.MENU, Constant.id(Constant.Menu.FUEL_LOADER_MENU), FUEL_LOADER);
+
+        Registry.register(BuiltInRegistries.MENU, Constant.id(Constant.Menu.FOOD_CANNER_MENU), FOOD_CANNER);
 
         Registry.register(BuiltInRegistries.MENU, Constant.id(Constant.Menu.AIR_LOCK_CONTROLLER_MENU), AIRLOCK_CONTROLLER_MENU);
         Registry.register(BuiltInRegistries.MENU, Constant.id(Constant.Menu.ROCKET_WORKBENCH_MENU), ROCKET_WORKBENCH);

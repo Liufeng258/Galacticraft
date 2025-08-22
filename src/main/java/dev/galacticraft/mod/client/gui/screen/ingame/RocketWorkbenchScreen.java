@@ -27,7 +27,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import dev.galacticraft.mod.Constant;
 import dev.galacticraft.mod.client.util.Graphics;
 import dev.galacticraft.mod.content.GCEntityTypes;
-import dev.galacticraft.mod.content.entity.orbital.RocketEntity;
+import dev.galacticraft.mod.content.entity.vehicle.RocketEntity;
 import dev.galacticraft.mod.machine.storage.VariableSizedContainer;
 import dev.galacticraft.mod.screen.RocketWorkbenchMenu;
 import net.minecraft.client.Minecraft;
@@ -48,7 +48,7 @@ public class RocketWorkbenchScreen extends AbstractContainerScreen<RocketWorkben
     private static final int NORMAL_SLOT_V = 224;
     private static final int NORMAL_SLOT_SIZE = 18;
 
-    private static final int UI_WIDTH = 248;
+    private static final int UI_WIDTH = 176;
     private static final int MAIN_UI_WIDTH = 176;
     private static final int UI_HEIGHT = 249;
 

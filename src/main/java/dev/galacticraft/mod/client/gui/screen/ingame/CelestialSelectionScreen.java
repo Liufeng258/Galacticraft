@@ -34,7 +34,6 @@ import dev.galacticraft.api.universe.celestialbody.landable.Landable;
 import dev.galacticraft.api.universe.celestialbody.satellite.Orbitable;
 import dev.galacticraft.impl.universe.celestialbody.type.SatelliteType;
 import dev.galacticraft.impl.universe.position.config.SatelliteConfig;
-import dev.galacticraft.mod.Constant;
 import dev.galacticraft.mod.client.util.Graphics;
 import dev.galacticraft.mod.network.c2s.PlanetTeleportPayload;
 import dev.galacticraft.mod.network.c2s.SatelliteCreationPayload;
@@ -45,11 +44,9 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
+import net.minecraft.util.Mth;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -59,102 +56,11 @@ import org.lwjgl.glfw.GLFW;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static dev.galacticraft.mod.Constant.CelestialScreen.*;
+
 @SuppressWarnings({"SpellCheckingInspection", "DataFlowIssue"})
 @Environment(EnvType.CLIENT)
 public class CelestialSelectionScreen extends CelestialScreen {
-    protected static final int MAX_SPACE_STATION_NAME_LENGTH = 32;
-
-    // String colours
-    protected static final int WHITE = FastColor.ARGB32.color(255, 255, 255, 255);
-    protected static final int GREY5 = FastColor.ARGB32.color(255, 150, 150, 150);
-    protected static final int GREY4 = FastColor.ARGB32.color(255, 140, 140, 140);
-    protected static final int GREY3 = FastColor.ARGB32.color(255, 120, 120, 120);
-    protected static final int GREEN = FastColor.ARGB32.color(255, 0, 255, 0);
-    protected static final int RED = FastColor.ARGB32.color(255, 255, 0, 0);
-    protected static final int RED3 = FastColor.ARGB32.color(255, 255, 100, 100);
-
-    // UI COLOURS
-    protected static final int BLUE = FastColor.ARGB32.color(255, 0, 153, 255); // panel/button colour
-    protected static final int YELLOW = FastColor.ARGB32.color(255, 255, 255, 0); // galaxy/grandfather panel
-    protected static final int GREY6 = FastColor.ARGB32.color(255, 165, 165, 165);
-
-    private static final int SIDE_PANEL_U = 0;
-    private static final int SIDE_PANEL_V = 0;
-    private static final int SIDE_PANEL_WIDTH = 95;
-    private static final int SIDE_PANEL_HEIGHT = 137;
-
-    private static final int CATALOG_U = 0;
-    private static final int CATALOG_V = 197;
-    private static final int CATALOG_WIDTH = 74;
-    private static final int CATALOG_HEIGHT = 11;
-
-    private static final int ZOOM_INFO_TAB_U = 134;
-    private static final int ZOOM_INFO_TAB_V = 67;
-    private static final int ZOOM_INFO_TAB_WIDTH = 83;
-    private static final int ZOOM_INFO_TAB_HEIGHT = 38;
-
-    private static final int PROFILE_UPPER_TAB_U = 134;
-    private static final int PROFILE_UPPER_TAB_V = 0;
-    private static final int PROFILE_UPPER_TAB_WIDTH = 86;
-    private static final int PROFILE_UPPER_TAB_HEIGHT = 15;
-
-    private static final int CATALOG_BACKING_U = 0;
-    private static final int CATALOG_BACKING_V = 221;
-    private static final int CATALOG_BACKING_WIDTH = 83;
-    private static final int CATALOG_BACKING_HEIGHT = 12;
-
-    private static final int PARENT_LABEL_U = 134;
-    private static final int PARENT_LABEL_V = 151;
-    private static final int PARENT_LABEL_WIDTH = 95;
-    private static final int PARENT_LABEL_HEIGHT = 41;
-
-    private static final int GRANDPARENT_LABEL_U = 134;
-    private static final int GRANDPARENT_LABEL_V = 193;
-    private static final int GRANDPARENT_LABEL_WIDTH = 93;
-    private static final int GRANDPARENT_LABEL_HEIGHT = 17;
-
-    private static final int SIDE_BUTTON_U = 134;
-    private static final int SIDE_BUTTON_V = 223;
-    private static final int SIDE_BUTTON_WIDTH = 92;
-    private static final int SIDE_BUTTON_HEIGHT = 12;
-
-    private static final int TOP_RIGHT_ACTION_BUTTON_U = 134;
-    private static final int TOP_RIGHT_ACTION_BUTTON_V = 211;
-    private static final int TOP_RIGHT_ACTION_BUTTON_WIDTH = 74;
-    private static final int TOP_RIGHT_ACTION_BUTTON_HEIGHT = 11;
-
-    private static final int SIDE_BUTTON_GRADIENT_U = 0;
-    private static final int SIDE_BUTTON_GRADIENT_V = 234;
-    private static final int SIDE_BUTTON_GRADIENT_WIDTH = 86;
-    private static final int SIDE_BUTTON_GRADIENTn_HEIGHT = 20;
-
-    private static final int TOPBAR_U = 134;
-    private static final int TOPBAR_V = 138;
-    private static final int TOPBAR_WIDTH = 94;
-    private static final int TOPBAR_HEIGHT = 12;
-
-    private static final int TOPBAR_SUB_U = 0;
-    private static final int TOPBAR_SUB_V = 209;
-    private static final int TOPBAR_SUB_WIDTH = 94;
-    private static final int TOPBAR_SUB_HEIGHT = 11;
-
-    private static final int CREATE_SS_PANEL_U = 0;
-    private static final int CREATE_SS_PANEL_V = 137;
-    private static final int CREATE_SS_PANEL_WIDTH = 93;
-    private static final int CREATE_SS_PANEL_HEIGHT = 47;
-    private static final int CREATE_SS_PANEL_CAP_U = 0;
-    private static final int CREATE_SS_PANEL_CAP_V = 185;
-    private static final int CREATE_SS_PANEL_CAP_WIDTH = 61;
-    private static final int CREATE_SS_PANEL_CAP_HEIGHT = 4;
-    private static final int CREATE_SS_PANEL_BUTTON_U = 134;
-    private static final int CREATE_SS_PANEL_BUTTON_V = 236;
-    private static final int CREATE_SS_PANEL_BUTTON_WIDTH = 93;
-    private static final int CREATE_SS_PANEL_BUTTON_HEIGHT = 12;
-
-    protected static final ResourceLocation TEXTURE_0 = Constant.id("textures/gui/celestial_selection.png");
-    protected static final ResourceLocation TEXTURE_1 = Constant.id("textures/gui/celestial_selection_1.png");
-    public static final int GREEN1 = FastColor.ARGB32.color(255, 0, 255, 25);
-
     protected int LHS = 0;
     protected int RHS = 0;
     protected int BOT = 0;
@@ -194,33 +100,42 @@ public class CelestialSelectionScreen extends CelestialScreen {
         super.onClose();
     }
 
-    protected String getGrandparentName() {
+    protected Component grandparentName() {
         CelestialBody<?, ?> body = this.selectedBody;
-        if (body == null || body == celestialBodies.get(Constant.id("sol"))) {
-            return I18n.get(Translations.Galaxy.MILKY_WAY); //fixme
+        if (body == null || body == this.celestialBodies.get(SOL)) {
+            return Component.translatable(Translations.Galaxy.MILKY_WAY); //fixme
         }
-        if (body.parent() != null) {
-            if (body.parent().value().parent() != null) {
-                return I18n.get(((TranslatableContents)body.parent().value().parent().value().name().getContents()).getKey());
+        if (body.parent().isPresent()) {
+            if (body.parentValue(this.celestialBodies).parent().isPresent()) {
+                return body.parentValue(this.celestialBodies).parentValue(this.celestialBodies).name();
             } else {
-                return I18n.get(((TranslatableContents) body.galaxy().value().name().getContents()).getKey());
+                return body.galaxyValue(this.galaxies, this.celestialBodies).name();
             }
         } else {
-            return I18n.get(((TranslatableContents) body.galaxy().value().name().getContents()).getKey());
+            return body.galaxyValue(this.galaxies, this.celestialBodies).name();
         }
     }
 
-    protected String parentName() {
-        if (this.selectedBody == null) return I18n.get(Translations.CelestialBody.SOL); //fixme
-        if (this.selectedBody == celestialBodies.get(Constant.id("sol"))) return I18n.get(Translations.CelestialBody.SOL);
-        if (this.selectedBody.parent() != null) return I18n.get(((TranslatableContents)this.selectedBody.parent().value().name().getContents()).getKey());
-        return I18n.get(((TranslatableContents) this.selectedBody.galaxy().value().name().getContents()).getKey());
+    protected Component parentName() {
+        if (this.selectedBody == null) return Component.translatable(Translations.CelestialBody.SOL); //fixme
+        if (this.selectedBody == this.celestialBodies.get(SOL))
+            return Component.translatable(Translations.CelestialBody.SOL);
+        if (this.selectedBody.parent().isPresent())
+            return this.selectedBody.parentValue(this.celestialBodies).name();
+        return this.selectedBody.galaxyValue(this.galaxies, this.celestialBodies).name();
     }
 
     protected List<CelestialBody<?, ?>> getChildren(CelestialBody<?, ?> celestialBody) {
         if (celestialBody != null) {
-            List<CelestialBody<?, ?>> list = celestialBodies.stream().filter(celestialBodyType -> celestialBodyType.parent() != null && celestialBodyType.parent().value() == celestialBody).collect(Collectors.toList());
-            list.addAll(getVisibleSatellitesForCelestialBody(celestialBody));
+            List<CelestialBody<?, ?>> list = this.celestialBodies.stream()
+                    .filter(body -> !body.isSatellite() && body.parent().isPresent() && body.parentValue(this.celestialBodies) == celestialBody)
+                    .collect(Collectors.toList());
+
+            List<CelestialBody<SatelliteConfig, SatelliteType>> satellites = this.getVisibleSatellitesForCelestialBody(celestialBody);
+            if (satellites.size() > 0) {
+                list.add(satellites.get(0));
+            }
+
             list.sort((o1, o2) -> Float.compare(o1.position().lineScale(), o2.position().lineScale()));
             return list;
         }
@@ -258,12 +173,10 @@ public class CelestialSelectionScreen extends CelestialScreen {
 
                 return true;
             }
-        } else {
-            if (key == GLFW.GLFW_KEY_ENTER) {
-                // Keyboard shortcut - teleport to dimension by pressing 'Enter'
-                this.teleportToSelectedBody();
-                return true;
-            }
+        } else if (key == GLFW.GLFW_KEY_ENTER) {
+            // Keyboard shortcut - teleport to dimension by pressing 'Enter'
+            this.teleportToSelectedBody();
+            return true;
         }
 
         return super.keyPressed(key, scanCode, modifiers);
@@ -285,13 +198,19 @@ public class CelestialSelectionScreen extends CelestialScreen {
     }
 
     protected boolean canCreateSpaceStation(CelestialBody<?, ?> atBody) {
-        if (!(atBody.type() instanceof Orbitable orbitable) || orbitable.satelliteRecipe(atBody.config()) == null) return false;
+        if (!atBody.isOrbitable()) {
+            return false;
+        }
+        SatelliteRecipe recipe = ((Orbitable) atBody.type()).satelliteRecipe(atBody.config());
+        if (recipe == null) {
+            return false;
+        }
         if (this.mapMode/* || ConfigManagerCore.disableSpaceStationCreation.get()*/ || !this.canCreateStations) //todo SSconfig
         {
             return false;
         }
 
-        if (this.data != null && !this.data.canTravel(manager, this.fromBody, atBody)) {
+        if (this.data != null && !this.data.canTravel(this.manager, this.fromBody, atBody)) {
             // If parent body is unreachable, the satellite is also unreachable
             return false;
         }
@@ -300,7 +219,7 @@ public class CelestialSelectionScreen extends CelestialScreen {
         assert this.minecraft != null;
         assert this.minecraft.level != null;
         for (CelestialBody<SatelliteConfig, SatelliteType> type : ((SatelliteAccessor) this.minecraft.getConnection()).galacticraft$getSatellites().values()) {
-            if (type.parent().value() == atBody) {
+            if (type.parentValue(this.celestialBodies) == atBody) {
                 assert this.minecraft.player != null;
                 if (type.type().ownershipData(type.config()).owner().equals(this.minecraft.player.getUUID())) {
                     foundSatellite = true;
@@ -322,11 +241,24 @@ public class CelestialSelectionScreen extends CelestialScreen {
         assert !this.mapMode;
         if (this.selectedBody != null && this.selectedBody.type() instanceof Landable landable) {
             landable.world(this.selectedBody.config());
-            if (this.data == null || this.data.canTravel(manager, this.fromBody, this.selectedBody)) {
+            if (this.data == null || this.data.canTravel(this.manager, this.fromBody, this.selectedBody)) {
                 try {
                     assert this.minecraft != null;
-                    ClientPlayNetworking.send(new PlanetTeleportPayload(celestialBodies.getKey(this.selectedBody)));
-                    this.minecraft.setScreen(new SpaceTravelScreen(isSatellite(selectedBody) ? ((Satellite) this.selectedBody.type()).getCustomName(this.selectedBody.config()).getString() : ((TranslatableContents)this.selectedBody.name().getContents()).getKey(), ((Landable) this.selectedBody.type()).world(this.selectedBody.config())));
+                    Component fromName = this.selectedBody.name();
+                    if (this.selectedBody.isSatellite()) {
+                        SatelliteConfig config = (SatelliteConfig) this.selectedBody.config();
+                        ClientPlayNetworking.send(new PlanetTeleportPayload(config.getId()));
+
+                        String name = config.getCustomName();
+                        if (name.length() == 0) {
+                            fromName = Component.translatable(Translations.Ui.SPACE_STATION_NAME, config.getOwnershipData().username());
+                        } else {
+                            fromName = Component.literal(name);
+                        }
+                    } else {
+                        ClientPlayNetworking.send(new PlanetTeleportPayload(this.celestialBodies.getKey(this.selectedBody)));
+                    }
+                    this.minecraft.setScreen(new SpaceTravelScreen(fromName, ((Landable) this.selectedBody.type()).world(this.selectedBody.config())));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -355,20 +287,17 @@ public class CelestialSelectionScreen extends CelestialScreen {
 
         if (!this.mapMode) {
             if (x >= RHS - 95 && x < RHS && y > LHS + 181 + canCreateOffset && y < LHS + 182 + 12 + canCreateOffset) {
-                if (this.selectedBody != null && this.selectedBody.type() instanceof Orbitable orbitable/* && this.selectedBody.getWorld() != null*/)
-                {
+                if (this.selectedBody != null && this.selectedBody.type() instanceof Orbitable orbitable/* && this.selectedBody.getWorld() != null*/) {
                     SatelliteRecipe recipe = orbitable.satelliteRecipe(this.selectedBody.config());
-                    if (recipe != null && this.canCreateSpaceStation(this.selectedBody))
-                    {
+                    if (recipe != null && this.canCreateSpaceStation(this.selectedBody)) {
                         assert this.minecraft != null;
                         assert this.minecraft.player != null;
-                        if (recipe.test(this.minecraft.player.getInventory()) || this.minecraft.player.isCreative())
-                        {
+                        if (recipe.test(this.minecraft.player.getInventory()) || this.minecraft.player.isCreative()) {
 //                            GalacticraftCore.packetPipeline.sendToServer(new PacketSimple(EnumSimplePacket.S_BIND_SPACE_STATION_ID, GCCoreUtil.getWorld(this.minecraft.level), new Object[]{this.selectedBody.getWorld()}));
-                            ClientPlayNetworking.send(new SatelliteCreationPayload(celestialBodies.getHolderOrThrow(celestialBodies.getResourceKey(this.selectedBody).get())));
+                            SatelliteCreationPayload payload = new SatelliteCreationPayload(this.selectedBody.getKey(this.celestialBodies));
+                            ClientPlayNetworking.send(payload);
                             //Zoom in on planet to show the new SpaceStation if not already zoomed
-                            if (!this.isZoomed())
-                            {
+                            if (!this.isZoomed()) {
                                 this.selectionState = EnumSelection.ZOOMED;
                                 this.preSelectZoom = this.zoom;
                                 this.preSelectPosition = this.position;
@@ -395,14 +324,15 @@ public class CelestialSelectionScreen extends CelestialScreen {
 
         if (this.selectedBody != null && !this.mapMode) {
             if (a) {
-                if (!(isSatellite(this.selectedBody)) || !this.selectedStationOwner.isEmpty()) {
+                assert this.minecraft != null;
+                if ((!this.isSatellite(this.selectedBody) || ((Satellite) this.selectedBody.type()).ownershipData(this.selectedBody.config()).canAccess(this.minecraft.player))) {
                     this.teleportToSelectedBody();
                 }
                 clickHandled = true;
             }
         }
 
-        if (isSatellite(this.selectedBody)) {
+        if (this.isSatellite(this.selectedBody)) {
             if (this.renamingSpaceStation) {
                 if (x >= width / 2f - 90 && x <= width / 2f + 90 && y >= this.height / 2f - 38 && y <= this.height / 2f + 38) {
                     // Apply
@@ -410,14 +340,14 @@ public class CelestialSelectionScreen extends CelestialScreen {
                         assert this.minecraft != null;
                         assert this.minecraft.player != null;
                         String strName = this.minecraft.player.getName().getString();
-//                        Integer spacestationID = this.spaceStationIDs.get(strName);
-//                        if (spacestationID == null) spacestationID = this.spaceStationIDs.get(strName.toLowerCase());
+                        // Integer spacestationID = this.spaceStationIDs.get(strName);
+                        // if (spacestationID == null) spacestationID = this.spaceStationIDs.get(strName.toLowerCase());
                         CelestialBody<SatelliteConfig, SatelliteType> selectedSatellite = (CelestialBody<SatelliteConfig, SatelliteType>) this.selectedBody;
-                        selectedSatellite.type().setCustomName(Component.translatable(this.renamingString), selectedSatellite.config());
-//                        RegistryKey<World> spacestationID = selectedSatellite.getWorld();
-//                        this.spaceStationMap.get(getSatelliteParentID(selectedSatellite)).get(strName).setStationName(this.renamingString);
-//	                    	this.spaceStationNames.put(strName, this.renamingString);
-//                            GalacticraftCore.packetPipeline.sendToServer(new PacketSimple(EnumSimplePacket.S_RENAME_SPACE_STATION, GCCoreUtil.getWorld(this.minecraft.level), new Object[]{this.renamingString, spacestationID})); //TODO SS ID PACKET
+                        selectedSatellite.type().setCustomName(this.renamingString, selectedSatellite.config());
+                        // RegistryKey<World> spacestationID = selectedSatellite.getWorld();
+                        // this.spaceStationMap.get(getSatelliteParentID(selectedSatellite)).get(strName).setStationName(this.renamingString);
+                        // this.spaceStationNames.put(strName, this.renamingString);
+                        // GalacticraftCore.packetPipeline.sendToServer(new PacketSimple(EnumSimplePacket.S_RENAME_SPACE_STATION, GCCoreUtil.getWorld(this.minecraft.level), new Object[]{this.renamingString, spacestationID})); //TODO SS ID PACKET
                         this.renamingSpaceStation = false;
                     }
                     // Cancel
@@ -462,7 +392,7 @@ public class CelestialSelectionScreen extends CelestialScreen {
                 yPos = LHS + 49 + max * 14;
 
                 if (x >= xPos && x <= xPos + 61 && y >= yPos && y <= yPos + 4) {
-                    if (max + spaceStationListOffset < stationListSize) {
+                    if (max + this.spaceStationListOffset < stationListSize) {
                         this.spaceStationListOffset++;
                     }
                     clickHandled = true;
@@ -497,7 +427,7 @@ public class CelestialSelectionScreen extends CelestialScreen {
         int xPos = LHS + 2;
         int yPos = LHS + 10;
 
-        boolean planetZoomedMoon = this.isZoomed() && isPlanet(this.selectedParent);
+        boolean planetZoomedMoon = this.isZoomed() && this.isPlanet(this.selectedParent);
 
         // Top yellow button e.g. Sol
         if (x >= xPos && x <= xPos + 93 && y >= yPos && y <= yPos + 12 && this.selectedParent != null) {
@@ -551,7 +481,7 @@ public class CelestialSelectionScreen extends CelestialScreen {
         }
 
         if (!clickHandled) {
-            List<CelestialBody<?, ?>> children = this.getChildren(this.isZoomed() && !(isPlanet(this.selectedParent)) ? this.selectedBody : this.selectedParent);
+            List<CelestialBody<?, ?>> children = this.getChildren(this.isZoomed() && !(this.isPlanet(this.selectedParent)) ? this.selectedBody : this.selectedParent);
 
             yPos = LHS + 50;
             for (CelestialBody<?, ?> child : children) {
@@ -646,42 +576,39 @@ public class CelestialSelectionScreen extends CelestialScreen {
 
     public void drawButtons(GuiGraphics gui, int mouseX, int mouseY) {
         boolean handledSliderPos = false;
-        String str;
+        Component text;
 
         try (Graphics graphics = Graphics.managed(gui, this.font)) {
-            try (Graphics.TextureColor texture = graphics.textureColor(TEXTURE_0)) {
+            try (Graphics.TextureColor texture = graphics.textureColor(CELESTIAL_SELECTION)) {
                 // Catalog:
                 texture.blit(LHS, LHS, 74, 11, CATALOG_U, CATALOG_V, CATALOG_WIDTH, CATALOG_HEIGHT, BLUE);
-                str = I18n.get(Translations.CelestialSelection.CATALOG).toUpperCase();
-                texture.drawCenteredText(str, LHS + 40, LHS + 1, WHITE);
+                texture.drawCenteredText(Component.translatable(Translations.CelestialSelection.CATALOG), LHS + 40, LHS + 1, WHITE);
 
                 // Catalog wedge:
                 texture.blit(LHS + 4, LHS, 83, 12, CATALOG_BACKING_U, CATALOG_BACKING_V, CATALOG_BACKING_WIDTH, CATALOG_BACKING_HEIGHT, BLUE);
 
                 int scale = (int) Math.min(95, this.ticksSinceMenuOpenF * 12.0F);
-                boolean planetZoomedNotMoon = this.isZoomed() && !(isGrandchildBody(this.selectedParent));
+                boolean planetZoomedNotMoon = this.isZoomed() && !(this.isGrandchildBody(this.selectedParent));
 
                 // Parent frame:
                 texture.blit(LHS - 95 + scale, LHS + 12, 95, 41, PARENT_LABEL_U, PARENT_LABEL_V, PARENT_LABEL_WIDTH, PARENT_LABEL_HEIGHT, BLUE);
-                str = planetZoomedNotMoon ? I18n.get(((TranslatableContents) this.selectedBody.name().getContents()).getKey()) : this.parentName();
-                texture.drawText(str, LHS + 9 - 95 + scale, LHS + 34, WHITE, false);
+                texture.drawText(planetZoomedNotMoon ? this.selectedBody.name() : this.parentName(), LHS + 9 - 95 + scale, LHS + 34, WHITE, false);
 
                 // Grandparent frame:
                 texture.blit(LHS + 2 - 95 + scale, LHS + 14, 93, 17, GRANDPARENT_LABEL_U, GRANDPARENT_LABEL_V, GRANDPARENT_LABEL_WIDTH, GRANDPARENT_LABEL_HEIGHT, YELLOW);
-                if (this.isZoomed() && this.selectedBody == celestialBodies.get(Constant.id("sol"))) {
-                    str = this.getGrandparentName();
+                if (this.isZoomed() && this.selectedBody == this.celestialBodies.get(SOL)) {
+                    text = this.grandparentName();
                 } else {
-                    str = planetZoomedNotMoon ? this.parentName() : this.getGrandparentName();
+                    text = planetZoomedNotMoon ? this.parentName() : this.grandparentName();
                 }
-                texture.drawText(str, LHS + 7 - 95 + scale, LHS + 16, GREY3, false);
+                texture.drawText(text, LHS + 7 - 95 + scale, LHS + 16, GREY3, false);
 
-                List<CelestialBody<?, ?>> children = this.getChildren(/*planetZoomedNotMoon*/this.isZoomed() ? this.selectedBody : celestialBodies.get(Constant.id("sol")));
+                List<CelestialBody<?, ?>> children = this.getChildren(/*planetZoomedNotMoon*/this.isZoomed() ? this.selectedBody : this.celestialBodies.get(SOL));
                 this.drawChildButtons(texture, children, 0, 0, true);
 
                 if (this.mapMode) {
                     texture.blit(RHS - 74, LHS, 74, 11, TOP_RIGHT_ACTION_BUTTON_U + TOP_RIGHT_ACTION_BUTTON_WIDTH, TOP_RIGHT_ACTION_BUTTON_V, -TOP_RIGHT_ACTION_BUTTON_WIDTH, TOP_RIGHT_ACTION_BUTTON_HEIGHT, RED);
-                    str = I18n.get(Translations.CelestialSelection.EXIT).toUpperCase();
-                    texture.drawText(str, RHS - 40 - font.width(str) / 2, LHS + 1, WHITE, false);
+                    texture.drawCenteredText(Component.translatable(Translations.CelestialSelection.EXIT), RHS - 40, LHS + 1, WHITE, false);
                 }
             }
 
@@ -689,116 +616,110 @@ public class CelestialSelectionScreen extends CelestialScreen {
             if (this.selectedBody != null) {
                 // Right-hand bar (basic selectionState info)
 
-                if (isSatellite(this.selectedBody)) {
+                if (this.isSatellite(this.selectedBody)) {
                     this.drawSpaceStationDetails(graphics);
                 } else {
-                    try (Graphics.TextureColor texture = graphics.textureColor(TEXTURE_0)) {
+                    try (Graphics.TextureColor texture = graphics.textureColor(CELESTIAL_SELECTION)) {
                         texture.blit(RHS - 96, LHS, 96, 139, SIDE_PANEL_U, SIDE_PANEL_V, SIDE_PANEL_WIDTH, SIDE_PANEL_HEIGHT, BLUE);
                     }
                 }
 
                 this.drawSpaceStationCreationPrompt(gui, graphics, mouseX, mouseY);
 
-                try (Graphics.TextureColor texture = graphics.textureColor(TEXTURE_0)) {
+                try (Graphics.TextureColor texture = graphics.textureColor(CELESTIAL_SELECTION)) {
                     // Top bar title:
                     int color = BLUE;
-                    if (isSatellite(this.selectedBody)) {
+                    if (this.isSatellite(this.selectedBody)) {
                         if (this.selectedStationOwner.isEmpty() || !this.selectedStationOwner.equalsIgnoreCase(this.minecraft.player.getName().getString())) {
                             color = RED;
                         } else {
                             color = GREEN;
                         }
                     }
-                    texture.blit(width / 2 - 47, LHS, 94, 11, TOPBAR_U, TOPBAR_V, TOPBAR_WIDTH, TOPBAR_HEIGHT, color);
+                    texture.blit(this.width / 2 - 47, LHS, 94, 11, TOPBAR_U, TOPBAR_V, TOPBAR_WIDTH, TOPBAR_HEIGHT, color);
 
-                    if (this.selectedBody.type() instanceof Tiered tiered && tiered.accessWeight(this.selectedBody.config()) >= 0 && (!(isSatellite(this.selectedBody)))) {
+                    if (this.selectedBody.type() instanceof Tiered tiered && tiered.accessWeight(this.selectedBody.config()) >= 0 && !this.isSatellite(this.selectedBody)) {
                         boolean canReach;
-                        if (this.data != null && !this.data.canTravel(manager, this.fromBody, this.selectedBody)) {
+                        if (this.data != null && !this.data.canTravel(this.manager, this.fromBody, this.selectedBody)) {
                             canReach = false;
                             color = RED;
                         } else {
                             canReach = true;
                             color = GREEN;
                         }
-                        texture.blit(width / 2 - 30, LHS + 11, 30, 11, TOPBAR_U, TOPBAR_V, 30, TOPBAR_HEIGHT, color);
-                        texture.blit(width / 2, LHS + 11, 30, 11, TOPBAR_U + TOPBAR_WIDTH - 30, TOPBAR_V, 30, TOPBAR_HEIGHT, color);
-                        str = I18n.get(Translations.CelestialSelection.TIER, tiered.accessWeight(this.selectedBody.config()) == -1 ? "?" : tiered.accessWeight(this.selectedBody.config()));
-                        texture.drawText(str, width / 2 - this.font.width(str) / 2, LHS + 13, canReach ? GREY4 : RED3, false);
+                        texture.blit(this.width / 2 - 30, LHS + 11, 30, 11, TOPBAR_U, TOPBAR_V, 30, TOPBAR_HEIGHT, color);
+                        texture.blit(this.width / 2, LHS + 11, 30, 11, TOPBAR_U + TOPBAR_WIDTH - 30, TOPBAR_V, 30, TOPBAR_HEIGHT, color);
+                        text = Component.translatable(Translations.CelestialSelection.TIER, tiered.accessWeight(this.selectedBody.config()) == -1 ? "?" : tiered.accessWeight(this.selectedBody.config()));
+                        texture.drawCenteredText(text, this.width / 2, LHS + 13, canReach ? GREY4 : RED3, false);
                     }
 
-                    str = I18n.get(((TranslatableContents) this.selectedBody.name().getContents()).getKey());
-
-                    if (isSatellite(this.selectedBody)) {
-                        str = I18n.get(Translations.CelestialSelection.RENAME).toUpperCase();
+                    text = this.selectedBody.name();
+                    if (this.isSatellite(this.selectedBody)) {
+                        text = Component.translatable(Translations.CelestialSelection.RENAME);
                     }
 
-                    texture.drawText(str, width / 2 - this.font.width(str) / 2, LHS + 2, WHITE, false);
+                    texture.drawCenteredText(text, this.width / 2, LHS + 2, WHITE, false);
 
                     if (!this.mapMode) {
-                        if (this.data != null && !this.data.canTravel(manager, this.fromBody, this.selectedBody) || !(this.selectedBody.type() instanceof Landable) || isSatellite(this.selectedBody) && !((Satellite) this.selectedBody.type()).ownershipData(this.selectedBody.config()).canAccess(this.minecraft.player)) {
+                        if (this.data != null && !this.data.canTravel(this.manager, this.fromBody, this.selectedBody) || !(this.selectedBody.type() instanceof Landable) || this.isSatellite(this.selectedBody) && !((Satellite) this.selectedBody.type()).ownershipData(this.selectedBody.config()).canAccess(this.minecraft.player)) {
                             color = RED;
                         } else {
                             color = GREEN;
                         }
 
                         texture.blit(RHS - 74, LHS, 74, 11, TOP_RIGHT_ACTION_BUTTON_U + TOP_RIGHT_ACTION_BUTTON_WIDTH, TOP_RIGHT_ACTION_BUTTON_V, -TOP_RIGHT_ACTION_BUTTON_WIDTH, TOP_RIGHT_ACTION_BUTTON_HEIGHT, color);
-                        str = I18n.get(Translations.CelestialSelection.LAUNCH).toUpperCase();
-                        texture.drawText(str, RHS - 40 - font.width(str) / 2, LHS + 2, WHITE, false);
+                        text = Component.translatable(Translations.CelestialSelection.LAUNCH);
+                        texture.drawCenteredText(text, RHS - 40, LHS + 2, WHITE, false);
                     }
 
-                    if (this.selectionState == EnumSelection.SELECTED && !(isSatellite(this.selectedBody))) {
+                    if (this.selectionState == EnumSelection.SELECTED && !this.isSatellite(this.selectedBody)) {
                         handledSliderPos = true;
 
                         int sliderPos = this.zoomTooltipPos;
-                        if (zoomTooltipPos != 38) {
+                        if (this.zoomTooltipPos != 38) {
                             sliderPos = Math.min((int) this.ticksSinceSelectionF * 2, 38);
                             this.zoomTooltipPos = sliderPos;
                         }
 
-                        texture.blit(RHS - 182, height - this.borderSize - this.borderEdgeSize - sliderPos, 83, 38, ZOOM_INFO_TAB_U + ZOOM_INFO_TAB_WIDTH, ZOOM_INFO_TAB_V, -ZOOM_INFO_TAB_WIDTH, ZOOM_INFO_TAB_HEIGHT, BLUE);
+                        texture.blit(RHS - 182, this.height - this.borderSize - this.borderEdgeSize - sliderPos, 83, 38, ZOOM_INFO_TAB_U + ZOOM_INFO_TAB_WIDTH, ZOOM_INFO_TAB_V, -ZOOM_INFO_TAB_WIDTH, ZOOM_INFO_TAB_HEIGHT, BLUE);
 
-                        boolean flag0 = !getVisibleSatellitesForCelestialBody(this.selectedBody).isEmpty();
-                        boolean flag1 = isPlanet(this.selectedBody) && !getChildren(this.selectedBody).isEmpty();
+                        boolean flag0 = !this.getVisibleSatellitesForCelestialBody(this.selectedBody).isEmpty();
+                        boolean flag1 = this.isPlanet(this.selectedBody) && !this.getChildren(this.selectedBody).isEmpty();
                         if (flag0 && flag1) {
-                            texture.drawSplitText(I18n.get(Translations.CelestialSelection.CLICK_AGAIN_MOONS_AND_SATELLITES), RHS - 182 + 41, height - this.borderSize - this.borderEdgeSize + 2 - sliderPos, 79, GREY5);
+                            texture.drawSplitText(Component.translatable(Translations.CelestialSelection.CLICK_AGAIN_MOONS_AND_SATELLITES), RHS - 182 + 41, this.height - this.borderSize - this.borderEdgeSize + 2 - sliderPos, 79, GREY5);
                         } else if (!flag0 && flag1) {
-                            texture.drawSplitText(I18n.get(Translations.CelestialSelection.CLICK_AGAIN_MOONS), RHS - 182 + 41, height - this.borderSize - this.borderEdgeSize + 6 - sliderPos, 79, GREY5);
+                            texture.drawSplitText(Component.translatable(Translations.CelestialSelection.CLICK_AGAIN_MOONS), RHS - 182 + 41, this.height - this.borderSize - this.borderEdgeSize + 6 - sliderPos, 79, GREY5);
                         } else if (flag0) {
-                            texture.drawSplitText(I18n.get(Translations.CelestialSelection.CLICK_AGAIN_SATELLITES), RHS - 182 + 41, height - this.borderSize - this.borderEdgeSize + 6 - sliderPos, 79, GREY5);
+                            texture.drawSplitText(Component.translatable(Translations.CelestialSelection.CLICK_AGAIN_SATELLITES), RHS - 182 + 41, this.height - this.borderSize - this.borderEdgeSize + 6 - sliderPos, 79, GREY5);
                         } else {
-                            texture.drawSplitText(I18n.get(Translations.CelestialSelection.CLICK_AGAIN), RHS - 182 + 41, height - this.borderSize - this.borderEdgeSize + 11 - sliderPos, 79, GREY5);
+                            texture.drawSplitText(Component.translatable(Translations.CelestialSelection.CLICK_AGAIN), RHS - 182 + 41, this.height - this.borderSize - this.borderEdgeSize + 11 - sliderPos, 79, GREY5);
                         }
                     }
                 }
 
-                if (isSatellite(this.selectedBody) && renamingSpaceStation) {
-                    try (Graphics.TextureColor texture = graphics.textureColor(TEXTURE_1, 512, 512)) {
-                        texture.blit(width / 2 - 90, this.height / 2 - 38, 179, 67, 159, 0, 179, 67, BLUE);
-                        texture.blit(width / 2 - 90 + 4, this.height / 2 - 38 + 2, 171, 10, 159, 92, 171, 10, BLUE);
-                        texture.blit(width / 2 - 90 + 8, this.height / 2 - 38 + 18, 161, 13, 159, 67, 161, 13, BLUE);
-                        texture.blit(width / 2 - 90 + 17, this.height / 2 - 38 + 59, 72, 12, 159 + 72, 80, -72, 12, BLUE);
-                        texture.blit(width / 2, this.height / 2 - 38 + 59, 72, 12, 159, 80, 72, 12, BLUE);
-                        str = I18n.get(Translations.CelestialSelection.ASSIGN_NAME);
-                        texture.drawCenteredText(str, width / 2, this.height / 2 - 35, WHITE);
-                        str = I18n.get(Translations.CelestialSelection.APPLY);
-                        texture.drawCenteredText(str, width / 2 - 36, this.height / 2 + 23, WHITE);
-                        str = I18n.get(Translations.CelestialSelection.CANCEL);
-                        texture.drawCenteredText(str, width / 2 + 36, this.height / 2 + 23, WHITE);
+                if (this.isSatellite(this.selectedBody) && renamingSpaceStation) {
+                    try (Graphics.TextureColor texture = graphics.textureColor(CELESTIAL_SELECTION_1, 512, 512)) {
+                        texture.blit(this.width / 2 - 90, this.height / 2 - 38, 179, 67, 159, 0, 179, 67, BLUE);
+                        texture.blit(this.width / 2 - 90 + 4, this.height / 2 - 38 + 2, 171, 10, 159, 92, 171, 10, BLUE);
+                        texture.blit(this.width / 2 - 90 + 8, this.height / 2 - 38 + 18, 161, 13, 159, 67, 161, 13, BLUE);
+                        texture.blit(this.width / 2 - 90 + 17, this.height / 2 - 38 + 59, 72, 12, 159 + 72, 80, -72, 12, BLUE);
+                        texture.blit(this.width / 2, this.height / 2 - 38 + 59, 72, 12, 159, 80, 72, 12, BLUE);
+                        texture.drawCenteredText(Component.translatable(Translations.CelestialSelection.ASSIGN_NAME), this.width / 2, this.height / 2 - 35, WHITE);
+                        texture.drawCenteredText(Component.translatable(Translations.CelestialSelection.APPLY), this.width / 2 - 36, this.height / 2 + 23, WHITE);
+                        texture.drawCenteredText(Component.translatable(Translations.CelestialSelection.CANCEL), this.width / 2 + 36, this.height / 2 + 23, WHITE);
 
                         if (this.renamingString == null) {
                             CelestialBody<SatelliteConfig, SatelliteType> selectedSatellite = (CelestialBody<SatelliteConfig, SatelliteType>) this.selectedBody;
                             String playerName = this.minecraft.player.getName().getString();
-                            this.renamingString = selectedSatellite.type().getCustomName(selectedSatellite.config()).getString();
+                            this.renamingString = selectedSatellite.type().getCustomName(selectedSatellite.config());
                         }
 
-                        str = this.renamingString;
-                        String str0 = this.renamingString;
-
-                        if ((this.ticksSinceMenuOpenF / 10) % 2 == 0) {
-                            str0 += "_";
+                        text = Component.literal(this.renamingString);
+                        Component underscore = text.copy().append("_");
+                        if ((int) (this.ticksSinceMenuOpenF / 10) % 2 == 0) {
+                            text = underscore;
                         }
-
-                        texture.drawCenteredText(str0, width / 2, this.height / 2 - 17, WHITE, false);
+                        texture.drawText(text, this.width / 2 - this.font.width(underscore) / 2, this.height / 2 - 17, WHITE, false);
                     }
                 }
             }
@@ -810,68 +731,56 @@ public class CelestialSelectionScreen extends CelestialScreen {
     }
 
     private void drawSpaceStationDetails(Graphics graphics) {
-        String str;
         int max;
 
-        try (Graphics.TextureColor texture = graphics.textureColor(TEXTURE_1, 512)) {
+        try (Graphics.TextureColor texture = graphics.textureColor(CELESTIAL_SELECTION_1, 512)) {
             CelestialBody<SatelliteConfig, SatelliteType> selectedSatellite = (CelestialBody<SatelliteConfig, SatelliteType>) this.selectedBody;
-            int stationListSize = (int) ((SatelliteAccessor) this.minecraft.getConnection()).galacticraft$getSatellites().values().stream().filter(s -> s.parent().value() == this.selectedBody.parent().value()).count();
+            int stationListSize = (int) ((SatelliteAccessor) this.minecraft.getConnection()).galacticraft$getSatellites().values().stream().filter(s -> s.parentValue(this.celestialBodies) == this.selectedBody.parentValue(this.celestialBodies)).count();
 
             max = Math.min((this.height / 2) / 14, stationListSize);
             texture.blit(RHS - 95, LHS, 95, 53, this.selectedStationOwner.isEmpty() ? 95 : 0, 186, 95, 53, BLUE);
-
-            int color;
-            if (this.spaceStationListOffset <= 0) {
-                color = GREY6;
-            } else {
-                color = BLUE;
-            }
-            texture.blit(RHS - 85, LHS + 45, 61, 4, 0, 239, 61, 4, color);
-            if (max + spaceStationListOffset >= stationListSize) {
-                color = GREY6;
-            } else {
-                color = BLUE;
-            }
-            texture.blit(RHS - 85, LHS + 49 + max * 14, 61, 4, 0, 239 + 4, 61, -4, color);
+            texture.blit(RHS - 85, LHS + 45, 61, 4, 0, 239, 61, 4, this.spaceStationListOffset <= 0 ? GREY6 : BLUE);
+            texture.blit(RHS - 85, LHS + 49 + max * 14, 61, 4, 0, 239 + 4, 61, -4, max + this.spaceStationListOffset >= stationListSize ? GREY6 : BLUE);
 
             if (((SatelliteAccessor) this.minecraft.getConnection()).galacticraft$getSatellites().values().stream().noneMatch(s -> s.parent() == this.selectedBody.parent() && s.type().ownershipData(s.config()).canAccess(this.minecraft.player))) {
-                str = I18n.get(Translations.CelestialSelection.SELECT_SS);
-                texture.drawSplitText(str, RHS - 47, LHS + 20, 91, WHITE);
+                texture.drawSplitText(Component.translatable(Translations.CelestialSelection.SELECT_SS), RHS - 47, LHS + 20, 91, WHITE);
             } else {
-                str = I18n.get(Translations.CelestialSelection.SS_OWNER);
-                texture.drawText(str, RHS - 85, LHS + 18, WHITE, false);
-                str = this.selectedStationOwner;
-                texture.drawCenteredText(str, RHS - 47, LHS + 30, WHITE, false);
+                texture.drawText(Component.translatable(Translations.CelestialSelection.SS_OWNER), RHS - 85, LHS + 18, WHITE, false);
+                texture.drawCenteredText(Component.literal(this.selectedStationOwner), RHS - 47, LHS + 30, WHITE, false);
             }
         }
 
-        try (Graphics.TextureColor texture = graphics.textureColor(TEXTURE_0)) {
+        try (Graphics.TextureColor texture = graphics.textureColor(CELESTIAL_SELECTION)) {
             Iterator<CelestialBody<SatelliteConfig, SatelliteType>> it = ((SatelliteAccessor) this.minecraft.getConnection()).galacticraft$getSatellites().values().stream().filter(s -> s.parent() == this.selectedBody.parent() && s.type().ownershipData(s.config()).canAccess(this.minecraft.player)).iterator();
             int i = 0;
             int j = 0;
             while (it.hasNext() && i < max) {
-                CelestialBody<SatelliteConfig, SatelliteType> e = it.next();
+                CelestialBody<SatelliteConfig, SatelliteType> body = it.next();
 
                 if (j >= this.spaceStationListOffset) {
-                    int xOffset = 0;
-
-                    if (e.type().ownershipData(e.config()).username().equalsIgnoreCase(this.selectedStationOwner)) {
-                        xOffset -= 5;
-                    }
+                    SatelliteConfig config = body.config();
+                    String username = config.getOwnershipData().username();
+                    int xOffset = username.equalsIgnoreCase(this.selectedStationOwner) ? -5 : 0;
 
                     texture.blit(RHS - 95 + xOffset, LHS + 50 + i * 14, 93, 12, SIDE_BUTTON_U + SIDE_BUTTON_WIDTH, SIDE_BUTTON_V, -SIDE_BUTTON_WIDTH, SIDE_BUTTON_HEIGHT, BLUE);
-                    str = "";
-                    String str0 = I18n.get(((TranslatableContents) e.name().getContents()).getKey());
-                    int point = 0;
-                    while (this.font.width(str) < 80 && point < str0.length()) {
-                        str = str + str0.charAt(point);
-                        point++;
+
+                    Component text;
+                    String name = config.getCustomName();
+                    if (name.length() == 0) {
+                        text = Component.translatable(Translations.Ui.SPACE_STATION_NAME, username);
+                    } else {
+                        text = Component.literal(name);
                     }
-                    if (this.font.width(str) >= 80) {
-                        str = str.substring(0, str.length() - 3);
-                        str = str + "...";
+
+                    String str = text.getString();
+                    int n = str.length();
+                    while (this.font.width(str) >= 80) {
+                        str = text.getString(--n);
                     }
-                    texture.drawText(str, RHS - 88 + xOffset, LHS + 52 + i * 14, WHITE, false);
+                    if (!str.equals(text.getString())) {
+                        str += "...";
+                    }
+                    texture.drawText(Component.literal(str), RHS - 88 + xOffset, LHS + 52 + i * 14, WHITE, false);
                     i++;
                 }
                 j++;
@@ -881,9 +790,9 @@ public class CelestialSelectionScreen extends CelestialScreen {
 
     private void drawSpaceStationCreationPrompt(GuiGraphics gui, Graphics graphics, int mousePosX, int mousePosY) {
         String str;
-        if (this.canCreateSpaceStation(this.selectedBody) && (!(isSatellite(this.selectedBody)))) {
-            try (Graphics.TextureColor texture = graphics.textureColor(TEXTURE_0)) {
-                int canCreateLength = Math.max(0, texture.getSplitStringLines(I18n.get(Translations.CelestialSelection.CAN_CREATE_SPACE_STATION), 91) - 2);
+        if (this.canCreateSpaceStation(this.selectedBody) && (!(this.isSatellite(this.selectedBody)))) {
+            try (Graphics.TextureColor texture = graphics.textureColor(CELESTIAL_SELECTION)) {
+                int canCreateLength = Math.max(0, texture.getSplitStringLines(Component.translatable(Translations.CelestialSelection.CAN_CREATE_SPACE_STATION), 91) - 2);
                 canCreateOffset = canCreateLength * this.font.lineHeight;
 
                 texture.blit(RHS - 79, LHS + 129, 61, 4, CREATE_SS_PANEL_CAP_U, CREATE_SS_PANEL_CAP_V, CREATE_SS_PANEL_CAP_WIDTH, CREATE_SS_PANEL_CAP_HEIGHT, BLUE);
@@ -906,9 +815,9 @@ public class CelestialSelectionScreen extends CelestialScreen {
                     int yPos = LHS + 154 + canCreateOffset;
 
                     boolean b = mousePosX >= xPos && mousePosX <= xPos + 16 && mousePosY >= yPos && mousePosY <= yPos + 16;
-                    int amount = getAmountInInventory(ingredient);
+                    int amount = this.getAmountInInventory(ingredient);
                     Lighting.setupFor3DItems();
-                    ItemStack stack = ingredient.getItems()[(int) (minecraft.level.getGameTime() % (20 * ingredient.getItems().length) / 20)];
+                    ItemStack stack = ingredient.getItems()[(int) (this.minecraft.level.getGameTime() % (20 * ingredient.getItems().length) / 20)];
 
                     graphics.cleanupState();
                     gui.renderItem(stack, xPos, yPos);
@@ -965,7 +874,7 @@ public class CelestialSelectionScreen extends CelestialScreen {
                     i++;
                 }
 
-                try (Graphics.TextureColor texture = graphics.textureColor(TEXTURE_0)) {
+                try (Graphics.TextureColor texture = graphics.textureColor(CELESTIAL_SELECTION)) {
                     int color;
                     if (validInputMaterials || this.minecraft.player.getAbilities().instabuild) {
                         color = GREEN1;
@@ -982,15 +891,15 @@ public class CelestialSelectionScreen extends CelestialScreen {
                     texture.blit(RHS - 95, LHS + 182 + canCreateOffset, 93, 12, CREATE_SS_PANEL_BUTTON_U, CREATE_SS_PANEL_BUTTON_V, CREATE_SS_PANEL_BUTTON_WIDTH, CREATE_SS_PANEL_BUTTON_HEIGHT, color);
 
                     color = (int) ((Math.sin(this.ticksSinceMenuOpenF / 5.0) * 0.5 + 0.5) * 255);
-                    texture.drawSplitText(I18n.get(Translations.CelestialSelection.CAN_CREATE_SPACE_STATION), RHS - 48, LHS + 137, 91, FastColor.ARGB32.color(255, color, 255, color));
+                    texture.drawSplitText(Component.translatable(Translations.CelestialSelection.CAN_CREATE_SPACE_STATION), RHS - 48, LHS + 137, 91, FastColor.ARGB32.color(255, color, 255, color));
 
                     if (!mapMode) {
-                        texture.drawSplitText(I18n.get(Translations.CelestialSelection.CREATE_SPACE_STATION).toUpperCase(), RHS - 48, LHS + 185 + canCreateOffset, 91, WHITE);
+                        texture.drawSplitText(Component.translatable(Translations.CelestialSelection.CREATE_SPACE_STATION), RHS - 48, LHS + 185 + canCreateOffset, 91, WHITE);
                     }
                 }
             } else {
                 try (Graphics.Text text = graphics.text()) {
-                    text.drawSplitText(I18n.get(Translations.CelestialSelection.CANNOT_CREATE_SPACE_STATION), RHS - 48, LHS + 138, 91, WHITE);
+                    text.drawSplitText(Component.translatable(Translations.CelestialSelection.CANNOT_CREATE_SPACE_STATION), RHS - 48, LHS + 138, 91, WHITE);
                 }
             }
         }
@@ -1000,7 +909,7 @@ public class CelestialSelectionScreen extends CelestialScreen {
         if (selectedBody == null || selectedBody.type() instanceof Satellite) return Collections.emptyList();
         List<CelestialBody<SatelliteConfig, SatelliteType>> list = new LinkedList<>();
         for (CelestialBody<SatelliteConfig, SatelliteType> satellite : ((SatelliteAccessor) this.minecraft.getConnection()).galacticraft$getSatellites().values()) {
-            if (satellite.parent().value() == selectedBody && satellite.type().ownershipData(satellite.config()).canAccess(this.minecraft.player)) {
+            if (satellite.parentValue(this.celestialBodies) == selectedBody && satellite.type().ownershipData(satellite.config()).canAccess(this.minecraft.player)) {
                 list.add(satellite);
             }
         }
@@ -1017,11 +926,11 @@ public class CelestialSelectionScreen extends CelestialScreen {
         for (int i = 0; i < children.size(); i++) {
             CelestialBody<?, ?> child = children.get(i);
             int xOffset = xOffsetBase + (child.equals(this.selectedBody) ? 5 : 0);
-            final int scale = (int) Math.min(95.0F, Math.max(0.0F, (this.ticksSinceMenuOpenF * 25.0F) - 95 * i));
+            final int scale = Mth.clamp((int) (this.ticksSinceMenuOpenF * 25.0F) - 95 * i, 0, 95);
 
             float brightness = child.equals(this.selectedBody) ? 0.2F : 0.0F;
             int color;
-            if (child.type() instanceof Landable<?> && (this.data == null || this.fromBody == null || this.data.canTravel(manager, this.fromBody, child))) {
+            if (child.type() instanceof Landable<?> && (this.data == null || this.fromBody == null || this.data.canTravel(this.manager, this.fromBody, child))) {
                 color = FastColor.ARGB32.color((int) (scale / 95.0F) * 255, 0, (int) ((0.6F + brightness) * 255), 0);
             } else {
                 color = FastColor.ARGB32.color((int) (scale / 95.0F) * 255, (int) ((0.6F + brightness) * 255), 0, 0);
@@ -1031,7 +940,7 @@ public class CelestialSelectionScreen extends CelestialScreen {
 
             if (scale > 0) {
                 color = 0xe0e0e0;
-                texture.drawText(I18n.get(((TranslatableContents)child.name().getContents()).getKey()), 7 + xOffset, yOffsetBase + yOffset + 2, color, false);
+                texture.drawText(child.isSatellite() ? Component.translatable(Translations.CelestialBody.SATELLITES) : child.name(), 7 + xOffset, yOffsetBase + yOffset + 2, color, false);
             }
 
             yOffset += 14;
@@ -1060,7 +969,7 @@ public class CelestialSelectionScreen extends CelestialScreen {
     protected int getAmountInInventory(Ingredient ingredient) {
         int i = 0;
 
-        for(int j = 0; j < Objects.requireNonNull(Objects.requireNonNull(this.minecraft).player).getInventory().getContainerSize(); ++j) {
+        for (int j = 0; j < Objects.requireNonNull(Objects.requireNonNull(this.minecraft).player).getInventory().getContainerSize(); ++j) {
             ItemStack stack = this.minecraft.player.getInventory().getItem(j);
             if (ingredient.test(stack)) {
                 i += stack.getCount();

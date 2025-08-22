@@ -22,7 +22,7 @@
 
 package dev.galacticraft.mod.screen;
 
-import dev.galacticraft.mod.content.entity.orbital.RocketEntity;
+import dev.galacticraft.mod.content.entity.vehicle.RocketEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -32,6 +32,7 @@ import net.minecraft.world.item.ItemStack;
 public class RocketMenu extends AbstractContainerMenu {
     public final Player player;
     public final RocketEntity rocket;
+
     protected RocketMenu(int syncId, Inventory playerInventory, int id) {
         this(syncId, playerInventory, playerInventory.player, (RocketEntity) playerInventory.player.level().getEntity(id));
     }

@@ -31,6 +31,10 @@ public interface Config {
 
     long heavyWireTransferLimit();
 
+    long machineEnergyStorageSize();
+
+    long energyStorageModuleStorageSize();
+
     long coalGeneratorEnergyProductionRate();
 
     long solarPanelEnergyProductionRate();
@@ -39,23 +43,47 @@ public interface Config {
 
     long electricCompressorEnergyConsumptionRate();
 
-    long electricArcFurnaceEnergyConsumptionRate();
-
-    long oxygenCollectorEnergyConsumptionRate();
-
-    long refineryEnergyConsumptionRate();
-
     long electricFurnaceEnergyConsumptionRate();
 
-    long energyStorageModuleStorageSize();
+    long electricArcFurnaceEnergyConsumptionRate();
 
-    long machineEnergyStorageSize();
+    float electricArcFurnaceBonusChance();
+
+    long oxygenCollectorEnergyConsumptionRate();
 
     long oxygenCompressorEnergyConsumptionRate();
 
     long oxygenDecompressorEnergyConsumptionRate();
 
-    long playerOxygenConsuptionRate();
+    long oxygenSealerEnergyConsumptionRate();
+
+    long oxygenSealerOxygenConsumptionRate();
+
+    long maxSealingPower();
+
+    long refineryEnergyConsumptionRate();
+
+    long fuelLoaderEnergyConsumptionRate();
+
+    long foodCannerEnergyConsumptionRate();
+
+    long smallOxygenTankCapacity();
+
+    long mediumOxygenTankCapacity();
+
+    long largeOxygenTankCapacity();
+
+    long playerOxygenConsumptionRate();
+
+    long wolfOxygenConsumptionRate();
+
+    long catOxygenConsumptionRate();
+
+    long parrotOxygenConsumptionRate();
+
+    boolean cannotEatWithMask();
+
+    boolean cannotEatInNoAtmosphere();
 
     double bossHealthMultiplier();
 

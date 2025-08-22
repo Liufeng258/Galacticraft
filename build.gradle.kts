@@ -25,6 +25,8 @@ import java.time.format.DateTimeFormatter
 
 // Build Info
 val isCi = (System.getenv("CI") ?: "false") == "true"
+val runJei = project.getProperties().getOrDefault("jei", "false").toString().toBoolean()
+val runRei = project.getProperties().getOrDefault("rei", !runJei).toString().toBoolean()
 
 // Minecraft, Mappings, Loader Versions
 val minecraftVersion         = project.property("minecraft.version").toString()
@@ -47,15 +49,16 @@ val jeiVersion               = project.property("jei.version").toString()
 val badpacketsVersion        = project.property("badpackets.version").toString()
 val wthitVersion             = project.property("wthit.version").toString()
 val architecturyVersion      = project.property("architectury.version").toString()
+val appleskinVersion         = project.property("appleskin.version").toString()
 val objVersion               = project.property("obj.version").toString()
 
 plugins {
     java
     `maven-publish`
-    id("fabric-loom") version("1.7-SNAPSHOT")
-    id("org.cadixdev.licenser") version("0.6.1")
-    id("org.ajoberstar.grgit") version("5.2.2")
-    id("dev.galacticraft.mojarn") version("0.5.0+13")
+    id("fabric-loom") version("1.10-SNAPSHOT")
+    id("com.diffplug.spotless") version("7.0.4")
+    id("org.ajoberstar.grgit") version("5.3.2")
+    id("dev.galacticraft.mojarn") version("0.6.1+19")
 }
 
 java {
@@ -103,6 +106,7 @@ base.archivesName.set(modName)
 loom {
     accessWidenerPath.set(project.file("src/main/resources/galacticraft.accesswidener"))
     mixin.add(sourceSets.main.get(), "galacticraft.refmap.json")
+    mixin.add(sourceSets.test.get(), "galacticraft-test.refmap.json")
 
     runs {
         getByName("client") {
@@ -195,6 +199,11 @@ repositories {
             includeGroup("mezz.jei")
         }
     }
+    maven("https://maven.ryanliptak.com/") {
+        content {
+            includeGroup("squeek.appleskin")
+        }
+    }
 }
 
 configurations {
@@ -234,31 +243,30 @@ dependencies {
     "compat"("me.shedaniel.cloth:cloth-config-fabric:$clothConfigVersion")
     "compat"("mcp.mobius.waila:wthit:fabric-$wthitVersion")
     "compat"("dev.architectury:architectury-fabric:$architecturyVersion") // required for REI fluid support
+    "compat"("squeek.appleskin:appleskin-fabric:$appleskinVersion")
 
-    multicompat(group = "me.shedaniel",
-            api = "RoughlyEnoughItems-api-fabric",
-            extra = "RoughlyEnoughItems-default-plugin-fabric",
-            runtime = "RoughlyEnoughItems-fabric",
-            version = reiVersion) {
-        exclude(group = "net.fabricmc.fabric-api")
+    modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:$reiVersion")
+    modCompileOnly("me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:$reiVersion")
+    if (runRei) {
+        modLocalRuntime("me.shedaniel:RoughlyEnoughItems-fabric:$reiVersion")
     }
 
-    multicompat(group = "mezz.jei",
-            api = "jei-1.21-common-api",
-            extra = "jei-1.21-fabric-api",
-//            runtime = "jei-$minecraftVersion-fabric", // we already have REI at runtime
-            version = jeiVersion) {
-        exclude(group = "net.fabricmc.fabric-api")
+    modCompileOnly("mezz.jei:jei-$minecraftVersion-fabric-api:$jeiVersion")
+    if (runJei) {
+        modLocalRuntime("mezz.jei:jei-$minecraftVersion-fabric:$jeiVersion")
     }
 
     testImplementation("net.fabricmc:fabric-loader-junit:$loaderVersion")
 }
 
 tasks.processResources {
-    inputs.property("version", project.version)
+    val properties = mapOf(
+        "version" to project.version
+    )
+    inputs.properties(properties)
 
     filesMatching("fabric.mod.json") {
-        expand("version" to project.version)
+        expand(properties)
     }
 
     // Minify json resources (https://stackoverflow.com/a/41029113)
@@ -299,14 +307,20 @@ tasks.jar {
 }
 
 tasks.test {
+    useJUnitPlatform()
     workingDir = project.file("run")
     dependsOn(tasks.getByName("runGametest"))
 }
 
-license {
-    setHeader(project.file("LICENSE_HEADER.txt"))
-    include("**/dev/galacticraft/**/*.java")
-    include("build.gradle.kts")
+spotless {
+    lineEndings = com.diffplug.spotless.LineEnding.UNIX
+
+    java {
+        licenseHeader(processLicenseHeader(rootProject.file("LICENSE")))
+        leadingTabsToSpaces()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+    }
 }
 
 publishing {
@@ -357,8 +371,10 @@ publishing {
     }
 }
 
-fun DependencyHandler.multicompat(group: String, api: String, extra: String, runtime: String = "", version: String, action: Action<ExternalModuleDependency> = Action {}) {
-    modCompileOnly(group = group, name = api, version = version, dependencyConfiguration = action)
-    modCompileOnly(group = group, name = extra, version = version, dependencyConfiguration = action)
-    if (runtime.isNotBlank()) modRuntimeOnly(group = group, name = runtime, version = version, dependencyConfiguration = action)
+fun processLicenseHeader(license: File): String {
+    val text = license.readText()
+    return "/*\n * " + text.substring(text.indexOf("Copyright"))
+        .replace("\n", "\n * ")
+        .replace("* \n", "*\n")
+        .trim() + "/\n\n"
 }

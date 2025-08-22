@@ -23,6 +23,7 @@
 package dev.galacticraft.mod.data.tag;
 
 import dev.galacticraft.mod.content.entity.damage.GCDamageTypes;
+import dev.galacticraft.mod.tag.GCDamageTypeTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.minecraft.core.HolderLookup;
@@ -41,30 +42,40 @@ public class GCDamageTypeTagProvider extends FabricTagProvider<DamageType> {
     protected void addTags(HolderLookup.Provider arg) {
         this.tag(DamageTypeTags.BYPASSES_ARMOR)
                 .add(GCDamageTypes.SUFFOCATION);
-                
+
         this.tag(DamageTypeTags.BYPASSES_WOLF_ARMOR)
                 .add(GCDamageTypes.SUFFOCATION);
-                
+
+        this.tag(DamageTypeTags.IS_PROJECTILE)
+                .add(GCDamageTypes.METEOR_STRIKE);
+
         this.tag(DamageTypeTags.IS_DROWNING)
                 .add(GCDamageTypes.SUFFOCATION);
-                
+
         this.tag(DamageTypeTags.NO_IMPACT)
                 .add(GCDamageTypes.VINE_POISON)
                 .add(GCDamageTypes.SUFFOCATION)
                 .add(GCDamageTypes.SULFURIC_ACID);
-                
+
         this.tag(DamageTypeTags.NO_KNOCKBACK)
                 .add(GCDamageTypes.VINE_POISON)
                 .add(GCDamageTypes.SUFFOCATION)
                 .add(GCDamageTypes.SULFURIC_ACID);
-                
+
+        this.tag(DamageTypeTags.ALWAYS_KILLS_ARMOR_STANDS)
+                .add(GCDamageTypes.METEOR_STRIKE)
+                .add(GCDamageTypes.SULFURIC_ACID);
+
         this.tag(DamageTypeTags.PANIC_ENVIRONMENTAL_CAUSES)
                 .add(GCDamageTypes.VINE_POISON)
                 .add(GCDamageTypes.SULFURIC_ACID);
-                
+
         this.tag(DamageTypeTags.WITHER_IMMUNE_TO)
                 .add(GCDamageTypes.VINE_POISON)
                 .add(GCDamageTypes.SUFFOCATION)
                 .add(GCDamageTypes.SULFURIC_ACID);
+
+        this.tag(GCDamageTypeTags.IS_METEOR)
+                .add(GCDamageTypes.METEOR_STRIKE);
     }
 }

@@ -84,8 +84,7 @@ public class CavernousVinesBlock extends GrowingPlantHeadBlock implements Boneme
                 levelAccessor.scheduleTick(blockPos, Fluids.WATER, Fluids.WATER.getTickDelay(levelAccessor));
             }
             return super.updateShape(blockState, direction, blockState2, levelAccessor, blockPos, blockPos2);
-        }
-        else {
+        } else {
             return this.updateBodyAfterConvertedFromHead(blockState, this.getBodyBlock().defaultBlockState().setValue(WATERLOGGED, levelAccessor.getFluidState(blockPos).getType() == Fluids.WATER));
         }
     }
@@ -149,6 +148,6 @@ public class CavernousVinesBlock extends GrowingPlantHeadBlock implements Boneme
 
     @Override
     public void performBonemeal(ServerLevel serverLevel, RandomSource randomSource, BlockPos blockPos, BlockState blockState) {
-        serverLevel.setBlock(blockPos, blockState.setValue(POISONOUS, true), 2);
+        serverLevel.setBlock(blockPos, blockState.setValue(POISONOUS, true), Block.UPDATE_CLIENTS);
     }
 }

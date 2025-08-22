@@ -31,6 +31,7 @@ import dev.galacticraft.mod.content.entity.data.GCEntityDataSerializers;
 import dev.galacticraft.mod.content.item.GCCreativeModeTabs;
 import dev.galacticraft.mod.content.item.GCItems;
 import dev.galacticraft.mod.data.OxygenBlockDataManager;
+import dev.galacticraft.mod.events.GCCauldronInteraction;
 import dev.galacticraft.mod.events.GCEventHandlers;
 import dev.galacticraft.mod.lookup.GCApiLookupProviders;
 import dev.galacticraft.mod.machine.GCMachineStatuses;
@@ -40,11 +41,10 @@ import dev.galacticraft.mod.particle.GCParticleTypes;
 import dev.galacticraft.mod.recipe.GCRecipes;
 import dev.galacticraft.mod.screen.GCMenuTypes;
 import dev.galacticraft.mod.structure.GCStructurePieceTypes;
-import dev.galacticraft.mod.tag.GCTags;
+import dev.galacticraft.mod.tag.*;
 import dev.galacticraft.mod.village.GCVillagerProfessions;
 import dev.galacticraft.mod.village.MoonVillagerTypes;
 import dev.galacticraft.mod.world.biome.source.GCMultiNoiseBiomeSourceParameterLists;
-import dev.galacticraft.mod.world.dimension.GCGases;
 import dev.galacticraft.mod.world.gen.carver.GCCarvers;
 import dev.galacticraft.mod.world.gen.feature.GCOrePlacedFeatures;
 import dev.galacticraft.mod.world.gen.feature.GCPlacedFeatures;
@@ -63,11 +63,18 @@ public class Galacticraft implements ModInitializer {
     public void onInitialize() {
         long startInitTime = System.currentTimeMillis();
         Constant.LOGGER.info("Starting initialization.");
-        GCTags.register();
+        GCChunkGenerator.register();
+        GCBiomeTags.register();
+        GCBlockTags.register();
+        GCDamageTypeTags.register();
+        GCDimensionTypeTags.register();
+        GCEntityTypeTags.register();
+        GCFluidTags.register();
+        GCItemTags.register();
+        GCStructureTags.register();
         GCFluids.register();
         GCBlocks.register();
         GCFluids.registerFluidVariantAttributes(); // Must be called after GCBlocks.register() so that grates can work
-        GCBlockEntityTypes.register();
         GCItems.register();
         GCTriggers.register();
         GCCreativeModeTabs.register();
@@ -75,7 +82,6 @@ public class Galacticraft implements ModInitializer {
         GCRecipes.register();
         GCEntityDataSerializers.register();
         GCEntityTypes.register();
-        GCGases.register();
         GCOrePlacedFeatures.register();
         GCPlacedFeatures.register();
         GCStructurePieceTypes.register();
@@ -83,6 +89,7 @@ public class Galacticraft implements ModInitializer {
         GCCarvers.register();
         MoonSurfaceRules.register();
         GCMultiNoiseBiomeSourceParameterLists.register();
+        GCAccessorySlots.register();
         GCMenuTypes.register();
         GCParticleTypes.register();
         GCCommands.register();
@@ -99,6 +106,8 @@ public class Galacticraft implements ModInitializer {
         GCStats.register();
         GCCelestialHandlers.register();
         GCEventHandlers.init();
+        GCCauldronInteraction.init();
+        GCExtinguishable.register();
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(OxygenBlockDataManager.INSTANCE);
         Constant.LOGGER.info("Initialization complete. (Took {}ms).", System.currentTimeMillis() - startInitTime);
     }

@@ -22,101 +22,31 @@
 
 package dev.galacticraft.mod.events;
 
+import dev.galacticraft.api.registry.ExtinguishableBlockRegistry;
 import dev.galacticraft.api.universe.celestialbody.CelestialBody;
 import dev.galacticraft.api.universe.celestialbody.landable.Landable;
 import dev.galacticraft.api.universe.celestialbody.landable.teleporter.CelestialTeleporter;
-import dev.galacticraft.mod.content.block.special.CryogenicChamberBlock;
-import dev.galacticraft.mod.content.block.special.CryogenicChamberPart;
 import dev.galacticraft.mod.misc.footprint.FootprintManager;
 import dev.galacticraft.mod.network.s2c.FootprintRemovedPacket;
 import dev.galacticraft.mod.util.Translations;
-import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import org.jetbrains.annotations.Nullable;
 
 public class GCEventHandlers {
     public static void init() {
-        EntitySleepEvents.ALLOW_BED.register(GCEventHandlers::allowCryogenicSleep);
-        EntitySleepEvents.MODIFY_SLEEPING_DIRECTION.register(GCEventHandlers::changeSleepPosition);
-        EntitySleepEvents.ALLOW_SLEEPING.register(GCEventHandlers::sleepInSpace);
-        EntitySleepEvents.ALLOW_SLEEP_TIME.register(GCEventHandlers::canCryoSleep);
-        EntitySleepEvents.STOP_SLEEPING.register(GCEventHandlers::onWakeFromCryoSleep);
+        GCSleepEventHandlers.init();
+        GCInteractionEventHandlers.init();
         ServerTickEvents.END_WORLD_TICK.register(GCEventHandlers::onWorldTick);
-    }
-
-    public static InteractionResult allowCryogenicSleep(LivingEntity entity, BlockPos sleepingPos, BlockState state, boolean vanillaResult) {
-        if (state.getBlock() instanceof CryogenicChamberPart && !state.getValue(CryogenicChamberPart.TOP)) {
-            return entity.isInCryoSleep()
-                    ? InteractionResult.SUCCESS
-                    : InteractionResult.PASS;
-        }
-        return InteractionResult.PASS;
-    }
-
-    public static Direction changeSleepPosition(LivingEntity entity, BlockPos sleepingPos, @Nullable Direction sleepingDirection) {
-        if (entity.isInCryoSleep()) {
-            BlockState state = entity.level().getBlockState(sleepingPos);
-
-            if (state.getBlock() instanceof CryogenicChamberPart) return state.getValue(CryogenicChamberBlock.FACING);
-        }
-
-        return sleepingDirection;
-    }
-
-    public static Player.BedSleepingProblem sleepInSpace(Player player, BlockPos sleepingPos) {
-        Level level = player.level();
-        Holder<CelestialBody<?, ?>> body = level.galacticraft$getCelestialBody();
-        if (body != null && level.getBlockState(sleepingPos).getBlock() instanceof BedBlock && !body.value().atmosphere().breathable()) {
-            player.sendSystemMessage(Component.translatable(Translations.Chat.BED_FAIL));
-            return Player.BedSleepingProblem.NOT_POSSIBLE_HERE;
-        }
-
-        return null;
-    }
-
-    public static InteractionResult canCryoSleep(Player player, BlockPos sleepingPos, boolean vanillaResult) {
-        return player.isInCryoSleep() || vanillaResult
-                ? InteractionResult.SUCCESS
-                : InteractionResult.PASS;
-    }
-
-    public static void onWakeFromCryoSleep(LivingEntity entity, BlockPos sleepingPos) {
-        Level level = entity.level();
-        if (!level.isClientSide() && entity.isInCryoSleep()) {
-            entity.endCryoSleep();
-            BlockPos basePos = sleepingPos.below();
-            BlockState baseState = level.getBlockState(basePos);
-            float angle = 0.0F;
-            if (baseState.getBlock() instanceof CryogenicChamberBlock) {
-                level.setBlockAndUpdate(basePos, baseState.setValue(BlockStateProperties.OCCUPIED, false));
-                angle = baseState.getValue(CryogenicChamberBlock.FACING).toYRot();
-                entity.setYRot(angle);
-            }
-
-            ServerPlayer serverPlayer = (ServerPlayer) entity;
-            if (!(serverPlayer.getRespawnDimension() == level.dimension() && basePos.equals(serverPlayer.getRespawnPosition()))) {
-                boolean forceRespawn = false;
-                serverPlayer.setRespawnPosition(level.dimension(), basePos, angle, forceRespawn, true);
-            }
-        }
     }
 
     public static void onPlayerChangePlanets(MinecraftServer server, ServerPlayer player, CelestialBody<?, ?> body, CelestialBody<?, ?> fromBody) {
@@ -128,19 +58,13 @@ public class GCEventHandlers {
         }
     }
 
-
-    public static void onPlayerTick(Player player) {
-
-    }
-
-    public static void onWorldTick(ServerLevel world) {
-        FootprintManager footprintManager = world.galacticraft$getFootprintManager();
+    public static void onWorldTick(ServerLevel level) {
+        FootprintManager footprintManager = level.galacticraft$getFootprintManager();
         if (!footprintManager.footprintBlockChanges.isEmpty()) {
             for (GlobalPos targetPoint : footprintManager.footprintBlockChanges) {
-                ;
-                if (world.dimension().location().equals(targetPoint.dimension().location())) {
+                if (level.dimension().location().equals(targetPoint.dimension().location())) {
                     long packedPos = ChunkPos.asLong(targetPoint.pos());
-                    PlayerLookup.around(world, targetPoint.pos(), 50).forEach(player -> {
+                    PlayerLookup.around(level, targetPoint.pos(), 50).forEach(player -> {
                         ServerPlayNetworking.send(player, new FootprintRemovedPacket(packedPos, targetPoint.pos()));
                     });
                 }
@@ -148,5 +72,16 @@ public class GCEventHandlers {
 
             footprintManager.footprintBlockChanges.clear();
         }
+        level.galacticraft$getSealerManager().tick();
+    }
+
+    public static boolean extinguishBlock(Level level, BlockPos pos, BlockState oldState) {
+        ExtinguishableBlockRegistry.Entry entry = ExtinguishableBlockRegistry.INSTANCE.get(oldState.getBlock());
+        if (entry == null) return false;
+        BlockState newState = entry.transform(oldState);
+        if (newState == null) return false;
+        level.setBlockAndUpdate(pos, newState);
+        entry.callback(new ExtinguishableBlockRegistry.Context(level, pos, oldState));
+        return true;
     }
 }

@@ -22,14 +22,23 @@
 
 package dev.galacticraft.mod.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import dev.galacticraft.api.registry.AddonRegistries;
+import dev.galacticraft.api.universe.celestialbody.CelestialBody;
+import dev.galacticraft.api.universe.celestialbody.landable.Landable;
+import dev.galacticraft.api.universe.celestialbody.landable.teleporter.CelestialTeleporter;
 import dev.galacticraft.mod.accessor.EntityAccessor;
 import dev.galacticraft.mod.content.entity.damage.GCDamageTypes;
 import dev.galacticraft.mod.misc.footprint.Footprint;
-import dev.galacticraft.mod.tag.GCTags;
+import dev.galacticraft.mod.tag.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
@@ -151,14 +160,14 @@ public abstract class EntityMixin implements EntityAccessor {
     private void checkWaterStateGC(CallbackInfo ci) {
         Player player = level.getPlayerByUUID(uuid);
         boolean isCreative = (player != null) && (player.isCreative() || player.isSpectator());
-        if (this.updateFluidHeightAndDoFluidPushing(GCTags.OIL, 0.0028d) || this.updateFluidHeightAndDoFluidPushing(GCTags.FUEL, 0.0028d)) {
+        if (this.updateFluidHeightAndDoFluidPushing(GCFluidTags.OIL, 0.0028d) || this.updateFluidHeightAndDoFluidPushing(GCFluidTags.FUEL, 0.0028d)) {
             if (this.isOnFire()) {
                 level.explode(level.getEntity(id), position.x, position.y, position.z, 0f, Level.ExplosionInteraction.NONE);
                 if (!isCreative) {
                     this.hurt(new DamageSource(this.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(GCDamageTypes.OIL_BOOM)), 20.0f);
                 }
             }
-        } else if (this.updateFluidHeightAndDoFluidPushing(GCTags.SULFURIC_ACID, 0.0028d)) {
+        } else if (this.updateFluidHeightAndDoFluidPushing(GCFluidTags.SULFURIC_ACID, 0.0028d)) {
             // The entity enters an acid fluid, this entity needs to take damage
             if (!isCreative) {
                 this.hurt(new DamageSource(this.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)
@@ -193,7 +202,7 @@ public abstract class EntityMixin implements EntityAccessor {
     // GC 4 ticks footprints on the client and server, however we will just do it on the server
     @Inject(method = "move", at = @At("HEAD"))
     private void tickFootprints(MoverType type, Vec3 motion, CallbackInfo ci) {
-        if (!getType().is(GCTags.HAS_FOOTPRINTS))
+        if (!getType().is(GCEntityTypeTags.HAS_FOOTPRINTS))
             return;
         double motionSqrd = Mth.lengthSquared(motion.x, motion.z);
 
@@ -201,44 +210,40 @@ public abstract class EntityMixin implements EntityAccessor {
         boolean isFlying = false;
         if ((Object) this instanceof Player player)
             isFlying = player.getAbilities().flying;
-        if (motionSqrd > 0.001 && this.level.dimensionTypeRegistration().is(GCTags.FOOTPRINTS_DIMENSIONS) && getVehicle() == null && !isFlying) {
-            int iPosX = Mth.floor(getX());
-            int iPosY = Mth.floor(getY() - 0.05);
-            int iPosZ = Mth.floor(getZ());
-            BlockPos pos1 = new BlockPos(iPosX, iPosY, iPosZ);
-            BlockState state = this.level.getBlockState(pos1);
+        if (motionSqrd > 0.001 && this.level.dimensionTypeRegistration().is(GCDimensionTypeTags.FOOTPRINTS_DIMENSIONS) && getVehicle() == null && !isFlying) {
+            // If it has been long enough since the last step
+            if (galacticraft$getDistanceSinceLastStep() > 0.35) {
+                Vector3d pos = new Vector3d(getX(), Math.floor(getY()), getZ());
 
-            // If the block below is the moon block
-            if (state.is(GCTags.FOOTPRINTS)) {
-                // If it has been long enough since the last step
-                if (galacticraft$getDistanceSinceLastStep() > 0.35) {
-                    Vector3d pos = new Vector3d(getX(), getY(), getZ());
-                    // Set the footprint position to the block below and add
-                    // random number to stop z-fighting
-                    pos.y = Mth.floor(getY()) + random.nextFloat() / 100.0F;
+                // Adjust footprint to left or right depending on step count
+                switch (galacticraft$getLastStep()) {
+                    case 0:
+                        pos.add(new Vector3d(Math.sin(Math.toRadians(-getYRot() + 90)) * 0.25, 0, Math.cos(Math.toRadians(-getYRot() + 90)) * 0.25));
+                        break;
+                    case 1:
+                        pos.add(new Vector3d(Math.sin(Math.toRadians(-getYRot() - 90)) * 0.25, 0, Math.cos(Math.toRadians(-getYRot() - 90)) * 0.25));
+                        break;
+                }
 
-                    // Adjust footprint to left or right depending on step
-                    // count
-                    switch (galacticraft$getLastStep()) {
-                        case 0:
-                            pos.add(new Vector3d(Math.sin(Math.toRadians(-getYRot() + 90)) * 0.25, 0, Math.cos(Math.toRadians(-getYRot() + 90)) * 0.25));
-                            break;
-                        case 1:
-                            pos.add(new Vector3d(Math.sin(Math.toRadians(-getYRot() - 90)) * 0.25, 0, Math.cos(Math.toRadians(-getYRot() - 90)) * 0.25));
-                            break;
-                    }
+                pos = Footprint.getFootprintPosition(level, getYRot() - 180, pos, position());
 
-                    pos = Footprint.getFootprintPosition(level, getYRot() - 180, pos, position());
+                int iPosX = Mth.floor(pos.x);
+                int iPosY = Mth.floor(pos.y - 0.05);
+                int iPosZ = Mth.floor(pos.z);
+                BlockPos blockPos = new BlockPos(iPosX, iPosY, iPosZ);
+                BlockState state = this.level.getBlockState(blockPos);
 
+                // If the block below is the moon block
+                if (state.is(GCBlockTags.FOOTPRINTS)) {
                     long chunkKey = ChunkPos.asLong(SectionPos.blockToSectionCoord(pos.x), SectionPos.blockToSectionCoord(pos.z));
                     level.galacticraft$getFootprintManager().addFootprint(chunkKey, new Footprint(level.dimensionTypeRegistration().unwrapKey().get().location(), pos, getYRot(), getUUID()));
-
-                    // Increment and cap step counter at 1
-                    galacticraft$setLastStep((galacticraft$getLastStep() + 1) % 2);
-                    galacticraft$setDistanceSinceLastStep(0);
-                } else {
-                    galacticraft$setDistanceSinceLastStep(galacticraft$getDistanceSinceLastStep() + motionSqrd);
                 }
+
+                // Increment and cap step counter at 1
+                galacticraft$setLastStep((galacticraft$getLastStep() + 1) % 2);
+                galacticraft$setDistanceSinceLastStep(0);
+            } else {
+                galacticraft$setDistanceSinceLastStep(galacticraft$getDistanceSinceLastStep() + motionSqrd);
             }
         }
     }
@@ -261,5 +266,22 @@ public abstract class EntityMixin implements EntityAccessor {
     @Override
     public void galacticraft$setLastStep(int lastStep) {
         this.lastStep = lastStep;
+    }
+
+    @WrapOperation(method = "checkBelowWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;onBelowWorld()V"))
+    private void galacticraft$onBelowWorld(Entity entity, Operation<Void> original) {
+        Holder<CelestialBody<?, ?>> holder = entity.level().galacticraft$getCelestialBody();
+        CelestialBody fromBody = holder != null ? holder.value() : null;
+        if (fromBody != null && fromBody.isSatellite() && fromBody.parent().isPresent()) {
+            Registry<CelestialBody<?, ?>> celestialBodies = entity.level().registryAccess().registryOrThrow(AddonRegistries.CELESTIAL_BODY);
+            CelestialBody body = fromBody.parentValue(celestialBodies);
+            if (body.type() instanceof Landable landable) {
+                if (entity.level() instanceof ServerLevel level) {
+                    ((CelestialTeleporter) landable.teleporter(body.config()).value()).onEnterAtmosphere(level.getServer().getLevel(landable.world(body.config())), entity, body, fromBody);
+                }
+                return;
+            }
+        }
+        original.call(entity);
     }
 }

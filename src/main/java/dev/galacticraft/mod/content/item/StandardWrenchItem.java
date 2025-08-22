@@ -22,6 +22,8 @@
 
 package dev.galacticraft.mod.content.item;
 
+import dev.galacticraft.mod.content.block.special.CryogenicChamberBlock;
+import dev.galacticraft.mod.content.block.special.CryogenicChamberPart;
 import dev.galacticraft.mod.util.TooltipUtil;
 import dev.galacticraft.mod.util.Translations;
 import net.minecraft.Util;
@@ -37,19 +39,30 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.BaseRailBlock;
+import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.block.state.properties.RailShape;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class StandardWrenchItem extends Item {
     public StandardWrenchItem(Properties settings) {
         super(settings);
+    }
+
+    private static <T extends Comparable<T>> BlockState cycle(BlockState state, Property<T> property, Iterable<T> values, boolean reverse) {
+        return state.setValue(property, cycle(values, state.getValue(property), reverse));
     }
 
     private static <T extends Comparable<T>> BlockState cycle(BlockState state, Property<T> property, boolean reverse) {
@@ -64,30 +77,80 @@ public class StandardWrenchItem extends Item {
     public @NotNull InteractionResult useOn(UseOnContext context) {
         Player player = context.getPlayer();
         Level world = context.getLevel();
-        if (!world.isClientSide && player != null) {
-            BlockPos pos = context.getClickedPos();
-            this.use(player, world.getBlockState(pos), world, pos, context.getHand(), context.getItemInHand());
-        }
-
-        return InteractionResult.SUCCESS;
-    }
-
-    private void use(Player player, BlockState state, LevelAccessor world, BlockPos pos, InteractionHand hand, ItemStack stack) {
+        BlockPos pos = context.getClickedPos();
+        BlockState state = world.getBlockState(pos);
         Block block = state.getBlock();
-        if (block.getStateDefinition().getProperty("facing") instanceof EnumProperty property) {
-            Collection<?> possibleValues = property.getPossibleValues();
-            if (possibleValues.size() <= Direction.values().length) {
-                for (Object value : possibleValues) {
-                    if (!(value instanceof Direction)) {
-                        return;
+
+        if (!world.isClientSide && player != null) {
+            boolean handled = false;
+
+            if (block.getStateDefinition().getProperty("facing") instanceof EnumProperty property) {
+                if (block instanceof ChestBlock && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {
+                    BlockPos otherPos = pos.relative(ChestBlock.getConnectedDirection(state));
+                    BlockState otherState = world.getBlockState(otherPos);
+                    Direction facing = state.getValue(ChestBlock.FACING).getOpposite();
+                    world.setBlock(otherPos, state.setValue(ChestBlock.FACING, facing), Block.UPDATE_ALL);
+                    world.setBlock(pos, otherState.setValue(ChestBlock.FACING, facing), Block.UPDATE_ALL);
+                    handled = true;
+                } else if (block instanceof BedBlock) {
+                    BlockPos otherPos = pos.relative(BedBlock.getConnectedDirection(state));
+                    BlockState otherState = world.getBlockState(otherPos);
+                    Direction facing = state.getValue(BedBlock.FACING).getOpposite();
+                    world.setBlock(otherPos, state.setValue(BedBlock.FACING, facing), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+                    world.setBlock(pos, otherState.setValue(BedBlock.FACING, facing), Block.UPDATE_ALL);
+                    handled = true;
+                } else if (block instanceof CryogenicChamberBlock || block instanceof CryogenicChamberPart) {
+                    int offset = (block instanceof CryogenicChamberPart && state.getValue(CryogenicChamberPart.TOP)) ? -2 :
+                            (block instanceof CryogenicChamberPart) ? -1 : 0;
+                    for (int i = 0; i < 3; i++) {
+                        BlockPos partPos = pos.above(i + offset);
+                        BlockState newState = cycle(world.getBlockState(partPos), property, player.isShiftKeyDown());
+                        world.setBlock(partPos, newState, Block.UPDATE_ALL);
+                    }
+                    handled = true;
+                } else {
+                    Collection<?> possibleValues = property.getPossibleValues();
+                    if (possibleValues.stream().allMatch(Direction.class::isInstance)) {
+                        Collection<Direction> sortedValues = ((Collection<Direction>) possibleValues).stream()
+                                .sorted(Comparator.comparingInt(Direction::get2DDataValue))
+                                .filter(dir -> state.setValue(property, dir).canSurvive(world, pos))
+                                .collect(Collectors.toList());
+
+                        BlockState newState = cycle(state, property, sortedValues, player.isShiftKeyDown());
+                        world.setBlock(pos, newState, Block.UPDATE_ALL);
+                        handled = true;
                     }
                 }
-
+            } else if (block.getStateDefinition().getProperty("axis") instanceof EnumProperty property) {
                 BlockState newState = cycle(state, property, player.isShiftKeyDown());
-                world.setBlock(pos, newState, 18);
-                stack.hurtAndBreak(2, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+                world.setBlock(pos, newState, Block.UPDATE_ALL);
+                handled = true;
+            } else if (block.getStateDefinition().getProperty("rotation") instanceof IntegerProperty property) {
+                BlockState newState = cycle(state, property, player.isShiftKeyDown());
+                world.setBlock(pos, newState, Block.UPDATE_ALL);
+                handled = true;
+            } else if (block instanceof BaseRailBlock && block.getStateDefinition().getProperty("shape") instanceof EnumProperty property) {
+                Collection<?> possibleValues = property.getPossibleValues();
+                if (possibleValues.stream().allMatch(RailShape.class::isInstance)) {
+                    Collection<RailShape> sortedValues = ((Collection<RailShape>) possibleValues).stream()
+                            .filter(shape -> !BaseRailBlock.shouldBeRemoved(pos, world, shape))
+                            .collect(Collectors.toList());
+
+                    BlockState newState = cycle(state, property, sortedValues, player.isShiftKeyDown());
+                    world.setBlock(pos, newState, Block.UPDATE_ALL);
+                    handled = true;
+                }
+            }
+
+            if (handled) {
+                context.getItemInHand().hurtAndBreak(1, player,
+                        context.getHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+                return InteractionResult.SUCCESS;
             }
         }
+
+        // Fallback
+        return super.useOn(context);
     }
 
     @Override

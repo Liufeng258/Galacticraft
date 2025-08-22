@@ -23,10 +23,10 @@
 package dev.galacticraft.mod.mixin.client;
 
 import com.mojang.authlib.GameProfile;
-import dev.galacticraft.mod.content.entity.ControllableEntity;
-import dev.galacticraft.mod.content.entity.orbital.AdvancedVehicle;
-import dev.galacticraft.mod.content.entity.orbital.RocketEntity;
-import dev.galacticraft.mod.content.entity.orbital.lander.AbstractLanderEntity;
+import dev.galacticraft.api.entity.ControllableEntity;
+import dev.galacticraft.mod.content.entity.vehicle.AdvancedVehicle;
+import dev.galacticraft.mod.content.entity.vehicle.RocketEntity;
+import dev.galacticraft.mod.content.entity.vehicle.AbstractLanderEntity;
 import dev.galacticraft.mod.content.item.RocketItem;
 import dev.galacticraft.mod.network.c2s.ControlEntityPayload;
 import net.fabricmc.api.EnvType;
@@ -67,11 +67,9 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer {
     @Inject(at = @At("RETURN"), method = "aiStep")
     private void gcRocketJumpCheck(CallbackInfo ci) {
         LocalPlayer player = (LocalPlayer) (Object) this;
-        if (player.isPassenger()) {
-            if (player.getVehicle() instanceof ControllableEntity controllable) {
-                controllable.inputTick(input.leftImpulse, input.forwardImpulse, input.up, input.down, input.left, input.right, input.jumping, input.shiftKeyDown);
-                ClientPlayNetworking.send(new ControlEntityPayload(input.leftImpulse, input.forwardImpulse, input.up, input.down, input.left, input.right, input.jumping, input.shiftKeyDown));
-            }
+        if (player.isPassenger() && player.getVehicle() instanceof ControllableEntity controllable) {
+            controllable.inputTick(input.leftImpulse, input.forwardImpulse, input.up, input.down, input.left, input.right, input.jumping, input.shiftKeyDown);
+            ClientPlayNetworking.send(new ControlEntityPayload(input.leftImpulse, input.forwardImpulse, input.up, input.down, input.left, input.right, input.jumping, input.shiftKeyDown));
         }
     }
 
@@ -110,7 +108,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer {
 
     @Inject(method = "removeVehicle", at = @At("HEAD"), cancellable = true)
     private void gc$exitAdvancedVehicle(CallbackInfo ci) {
-        Entity vehicle = getVehicle();
+        Entity vehicle = this.getVehicle();
         if (vehicle instanceof AdvancedVehicle) {
             this.minecraft.options.setCameraType(CameraType.FIRST_PERSON);
         }

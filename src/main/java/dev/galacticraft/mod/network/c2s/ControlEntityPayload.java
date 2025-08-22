@@ -22,9 +22,9 @@
 
 package dev.galacticraft.mod.network.c2s;
 
+import dev.galacticraft.api.entity.ControllableEntity;
 import dev.galacticraft.impl.network.c2s.C2SPayload;
 import dev.galacticraft.mod.Constant;
-import dev.galacticraft.mod.content.entity.ControllableEntity;
 import dev.galacticraft.mod.util.StreamCodecs;
 import io.netty.buffer.ByteBuf;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -34,7 +34,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
-public record ControlEntityPayload(float leftImpulse, float forwardImpulse, boolean up, boolean down, boolean left, boolean right, boolean jumping, boolean shiftKeyDown) implements C2SPayload {
+public record ControlEntityPayload(float leftImpulse, float forwardImpulse, boolean up, boolean down, boolean left,
+                                   boolean right, boolean jumping, boolean shiftKeyDown) implements C2SPayload {
     public static final StreamCodec<ByteBuf, ControlEntityPayload> STREAM_CODEC = StreamCodecs.composite(
             ByteBufCodecs.FLOAT,
             p -> p.leftImpulse,

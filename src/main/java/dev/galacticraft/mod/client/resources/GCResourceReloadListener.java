@@ -23,18 +23,15 @@
 package dev.galacticraft.mod.client.resources;
 
 import dev.galacticraft.mod.Constant;
-import dev.galacticraft.mod.client.model.*;
 import dev.galacticraft.mod.client.render.entity.BubbleEntityRenderer;
 import dev.galacticraft.mod.content.GCFluids;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
 import net.fabricmc.fabric.api.resource.ResourceReloadListenerKeys;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -61,15 +58,10 @@ public class GCResourceReloadListener implements SimpleSynchronousResourceReload
     @Override
     public void onResourceManagerReload(ResourceManager resourceManager) {
         var atlas = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS);
-        WireBakedModel.invalidate();
-        WalkwayBakedModel.invalidate();
-        WireWalkwayBakedModel.invalidate();
-        PipeBakedModel.invalidate();
-        FluidPipeWalkwayBakedModel.invalidate();
         BubbleEntityRenderer.bubbleModel = null;
 
         FluidRenderHandler oxygen = (view, pos, state) -> new TextureAtlasSprite[]{
-                atlas.apply(Constant.Fluid.fluidId(Constant.Fluid.LIQUID_OXYGEN)), 
+                atlas.apply(Constant.Fluid.fluidId(Constant.Fluid.LIQUID_OXYGEN)),
                 atlas.apply(Constant.Fluid.fluidId(Constant.Fluid.LIQUID_OXYGEN))
         };
 

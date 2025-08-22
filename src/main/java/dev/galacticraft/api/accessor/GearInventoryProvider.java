@@ -22,13 +22,20 @@
 
 package dev.galacticraft.api.accessor;
 
-import dev.galacticraft.api.item.OxygenGear;
-import dev.galacticraft.api.item.OxygenMask;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
 
 public interface GearInventoryProvider {
+    default void galacticraft$onEquipAccessory(ItemStack previous, ItemStack incoming) {
+        throw new RuntimeException("This should be overridden by mixin!");
+    }
+
+    default SimpleContainer galacticraft_createGearInventory() {
+        throw new RuntimeException("This should be overridden by mixin!");
+    }
+
     default Container galacticraft$getGearInv() {
         throw new RuntimeException("This should be overridden by mixin!");
     }
@@ -46,19 +53,23 @@ public interface GearInventoryProvider {
     }
 
     default boolean galacticraft$hasMaskAndGear() {
-        boolean mask = false;
-        boolean gear = false;
-        for (int i = 0; i < this.galacticraft$getAccessories().getContainerSize(); i++) {
-            Item item = this.galacticraft$getAccessories().getItem(i).getItem();
-            if (!mask && item instanceof OxygenMask) {
-                mask = true;
-                if (gear) break;
-            } else if (!gear && item instanceof OxygenGear) {
-                gear = true;
-                if (mask) break;
-            }
-        }
-        return mask && gear;
+        return this.galacticraft$hasMask() && this.galacticraft$hasGear();
+    }
+
+    default boolean galacticraft$hasMask() {
+        throw new RuntimeException("This should be overridden by mixin!");
+    }
+
+    default boolean galacticraft$hasGear() {
+        throw new RuntimeException("This should be overridden by mixin!");
+    }
+
+    default String galacticraft$tankSize(int i) {
+        throw new RuntimeException("This should be overridden by mixin!");
+    }
+
+    default long galacticraft$oxygenConsumptionRate() {
+        throw new RuntimeException("This should be overridden by mixin!");
     }
 
     default void galacticraft$writeGearToNbt(CompoundTag tag) {

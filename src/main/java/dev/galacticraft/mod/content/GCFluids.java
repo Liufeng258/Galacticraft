@@ -61,14 +61,14 @@ public class GCFluids {
         ));
         FluidVariantAttributes.register(FUEL, new GCFluidAttribute(
                 Component.translatable(GCBlocks.FUEL.getDescriptionId())
-                        .setStyle(Constant.Text.YELLOW_STYLE),
+                        .setStyle(Constant.Text.GOLD_STYLE),
                 2000,
                 false
         ));
         FluidVariantAttributes.register(SULFURIC_ACID, new GCFluidAttribute(
                 Component.translatable(GCBlocks.SULFURIC_ACID.getDescriptionId())
-                        .setStyle(Constant.Text.YELLOW_STYLE),
-                FluidConstants.LAVA_VISCOSITY,
+                        .setStyle(Constant.Text.GREEN_STYLE),
+                FluidConstants.WATER_VISCOSITY,
                 false
         ));
         FluidVariantAttributes.register(LIQUID_OXYGEN, new GCFluidAttribute(

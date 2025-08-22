@@ -41,6 +41,7 @@ import net.minecraft.world.level.material.Fluids;
 
 public class CavernousVinesPlantBlock extends GrowingPlantBodyBlock implements BonemealableBlock, CavernousVines, SimpleWaterloggedBlock {
     public static final MapCodec<CavernousVinesPlantBlock> CODEC = simpleCodec(CavernousVinesPlantBlock::new);
+
     public CavernousVinesPlantBlock(BlockBehaviour.Properties properties) {
         super(properties, Direction.DOWN, SHAPE, true);
         this.registerDefaultState(this.stateDefinition.any().setValue(WATERLOGGED, false).setValue(POISONOUS, false));
@@ -88,7 +89,7 @@ public class CavernousVinesPlantBlock extends GrowingPlantBodyBlock implements B
 
     @Override
     public void performBonemeal(ServerLevel serverLevel, RandomSource randomSource, BlockPos blockPos, BlockState blockState) {
-        serverLevel.setBlock(blockPos, blockState.setValue(POISONOUS, true), 2);
+        serverLevel.setBlock(blockPos, blockState.setValue(POISONOUS, true), Block.UPDATE_CLIENTS);
     }
 
     @Override

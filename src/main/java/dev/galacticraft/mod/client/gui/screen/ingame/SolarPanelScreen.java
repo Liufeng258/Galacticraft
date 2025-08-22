@@ -24,7 +24,6 @@ package dev.galacticraft.mod.client.gui.screen.ingame;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.galacticraft.machinelib.api.block.entity.MachineBlockEntity;
-import dev.galacticraft.machinelib.api.machine.MachineStatus;
 import dev.galacticraft.machinelib.client.api.screen.MachineScreen;
 import dev.galacticraft.machinelib.client.api.util.GraphicsUtil;
 import dev.galacticraft.mod.Constant;
@@ -40,7 +39,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -56,11 +55,11 @@ public class SolarPanelScreen<Machine extends MachineBlockEntity & SolarPanel, M
     private static final int SOLAR_PANEL_HEIGHT = 16;
 
     private static final Component DAY = Component.translatable(Translations.SolarPanel.DAY).setStyle(Constant.Text.YELLOW_STYLE);
-    private static final Component NIGHT = Component.translatable(Translations.SolarPanel.NIGHT).setStyle(Constant.Text.GRAY_STYLE);
+    private static final Component NIGHT = Component.translatable(Translations.SolarPanel.NIGHT).setStyle(Constant.Text.WHITE_STYLE);
     private static final Component OVERCAST = Component.translatable(Translations.SolarPanel.OVERCAST).setStyle(Constant.Text.BLUE_STYLE);
     private static final Component STORMY = Component.translatable(Translations.SolarPanel.STORMY).setStyle(Constant.Text.DARK_GRAY_STYLE);
     private static final Component BLOCKED = Component.translatable(Translations.SolarPanel.BLOCKED).setStyle(Constant.Text.DARK_RED_STYLE);
-    private static final Component MISSING_SOURCE = Component.translatable(Translations.SolarPanel.MISSING_SOURCE).setStyle(Constant.Text.WHITE_STYLE);
+    private static final Component MISSING_SOURCE = Component.translatable(Translations.SolarPanel.MISSING_SOURCE).setStyle(Constant.Text.RED_STYLE);
 
     private final Map<SolarPanelSource, ResourceLocation> solarPanelTextures;
     private final Map<SolarPanelSource, LightSource> lightSources;
@@ -86,7 +85,10 @@ public class SolarPanelScreen<Machine extends MachineBlockEntity & SolarPanel, M
                 }
             }
         }
-        graphics.blit(this.lightSources.get(this.menu.getSource()).location(), this.leftPos + LIGHT_SOURCE_X, this.topPos + LIGHT_SOURCE_Y, 0, 0, LIGHT_SOURCE_WIDTH, LIGHT_SOURCE_HEIGHT, 32, 32);
+        ResourceLocation location = this.lightSources.get(this.menu.getSource()).location();
+        if (location != null) {
+            graphics.blit(location, this.leftPos + LIGHT_SOURCE_X, this.topPos + LIGHT_SOURCE_Y, 0, 0, LIGHT_SOURCE_WIDTH, LIGHT_SOURCE_HEIGHT, 32, 32);
+        }
     }
 
     @Override
@@ -100,12 +102,17 @@ public class SolarPanelScreen<Machine extends MachineBlockEntity & SolarPanel, M
                     if (this.menu.getBlockage()[y * 3 + x]) {
                         graphics.renderTooltip(this.font, Component.translatable(Translations.SolarPanel.STATUS).setStyle(Constant.Text.GRAY_STYLE).append(BLOCKED), mouseX, mouseY);
                     } else {
-                        switch (this.menu.getSource()){
-                            case DAY -> graphics.renderTooltip(this.font, Component.translatable(Translations.SolarPanel.STATUS).setStyle(Constant.Text.GRAY_STYLE).append(DAY), mouseX, mouseY);
-                            case OVERCAST -> graphics.renderTooltip(this.font, Component.translatable(Translations.SolarPanel.STATUS).setStyle(Constant.Text.GRAY_STYLE).append(OVERCAST), mouseX, mouseY);
-                            case STORMY -> graphics.renderTooltip(this.font, Component.translatable(Translations.SolarPanel.STATUS).setStyle(Constant.Text.GRAY_STYLE).append(STORMY), mouseX, mouseY);
-                            case NIGHT -> graphics.renderTooltip(this.font, Component.translatable(Translations.SolarPanel.STATUS).setStyle(Constant.Text.GRAY_STYLE).append(NIGHT), mouseX, mouseY);
-                            case NO_LIGHT_SOURCE -> graphics.renderTooltip(this.font, Component.translatable(Translations.SolarPanel.STATUS).setStyle(Constant.Text.GRAY_STYLE).append(MISSING_SOURCE), mouseX, mouseY);
+                        switch (this.menu.getSource()) {
+                            case DAY ->
+                                    graphics.renderTooltip(this.font, Component.translatable(Translations.SolarPanel.STATUS).setStyle(Constant.Text.GRAY_STYLE).append(DAY), mouseX, mouseY);
+                            case OVERCAST ->
+                                    graphics.renderTooltip(this.font, Component.translatable(Translations.SolarPanel.STATUS).setStyle(Constant.Text.GRAY_STYLE).append(OVERCAST), mouseX, mouseY);
+                            case STORMY ->
+                                    graphics.renderTooltip(this.font, Component.translatable(Translations.SolarPanel.STATUS).setStyle(Constant.Text.GRAY_STYLE).append(STORMY), mouseX, mouseY);
+                            case NIGHT ->
+                                    graphics.renderTooltip(this.font, Component.translatable(Translations.SolarPanel.STATUS).setStyle(Constant.Text.GRAY_STYLE).append(NIGHT), mouseX, mouseY);
+                            case NO_LIGHT_SOURCE ->
+                                    graphics.renderTooltip(this.font, Component.translatable(Translations.SolarPanel.STATUS).setStyle(Constant.Text.GRAY_STYLE).append(MISSING_SOURCE), mouseX, mouseY);
                         }
                     }
                     return;
@@ -114,7 +121,7 @@ public class SolarPanelScreen<Machine extends MachineBlockEntity & SolarPanel, M
         }
 
         if (DrawableUtil.isWithin(mouseX, mouseY, this.leftPos + LIGHT_SOURCE_X, this.topPos + LIGHT_SOURCE_Y, LIGHT_SOURCE_WIDTH, LIGHT_SOURCE_HEIGHT)) {
-            List<Component> tooltip = new LinkedList<>();
+            List<Component> tooltip = new ArrayList<Component>();
             LightSource source = this.lightSources.get(this.menu.getSource());
             tooltip.add(Component.translatable(Translations.SolarPanel.LIGHT_SOURCE).setStyle(Constant.Text.AQUA_STYLE).append(source.name()));
             tooltip.add(Component.translatable(Translations.SolarPanel.STRENGTH, source.strength()).setStyle(Constant.Text.GREEN_STYLE));
@@ -133,8 +140,8 @@ public class SolarPanelScreen<Machine extends MachineBlockEntity & SolarPanel, M
     @Override
     public void appendEnergyTooltip(List<Component> list) {
         super.appendEnergyTooltip(list);
-        if (this.menu.state.isActive()) {
-            list.add(Component.translatable(Translations.Ui.GJT, this.menu.getCurrentEnergyGeneration()).setStyle(Constant.Text.LIGHT_PURPLE_STYLE));
+        if (this.menu.be.isActive()) {
+            list.add(Component.translatable(Translations.Ui.GJT, DrawableUtil.getEnergyDisplay(this.menu.getCurrentEnergyGeneration())).setStyle(Constant.Text.LIGHT_PURPLE_STYLE));
         }
     }
 }

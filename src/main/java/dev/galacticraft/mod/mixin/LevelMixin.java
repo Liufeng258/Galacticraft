@@ -22,10 +22,19 @@
 
 package dev.galacticraft.mod.mixin;
 
-import dev.galacticraft.mod.accessor.LevelAccessor;
+import dev.galacticraft.mod.accessor.GCLevelAccessor;
+import dev.galacticraft.mod.machine.SealerManager;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(Level.class)
-public class LevelMixin implements LevelAccessor {
+public class LevelMixin implements GCLevelAccessor {
+    @Unique
+    private final SealerManager sealerManager = new SealerManager((Level) (Object) this);
+
+    @Override
+    public SealerManager galacticraft$getSealerManager() {
+        return sealerManager;
+    }
 }
